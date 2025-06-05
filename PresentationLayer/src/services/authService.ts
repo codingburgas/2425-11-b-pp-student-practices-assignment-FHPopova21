@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5001/api';
 
 export interface LoginData {
     email: string;
@@ -9,64 +9,81 @@ export interface RegisterData extends LoginData {
     username: string;
 }
 
+const handleResponse = async (response: Response) => {
+    const data = await response.json();
+    if (!response.ok) {
+        const error = data.error || 'Something went wrong';
+        throw new Error(error);
+    }
+    return data;
+};
+
 export const authService = {
     async login(data: LoginData) {
-        const response = await fetch(`${API_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(data),
-        });
-        
-        if (!response.ok) {
-            throw new Error('Login failed');
+        try {
+            const response = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(data),
+            });
+            return handleResponse(response);
+        } catch (error) {
+            console.error('Login error:', error);
+            throw error;
         }
-        
-        return response.json();
     },
 
     async register(data: RegisterData) {
-        const response = await fetch(`${API_URL}/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify(data),
-        });
-        
-        if (!response.ok) {
-            throw new Error('Registration failed');
+        try {
+            const response = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(data),
+            });
+            return handleResponse(response);
+        } catch (error) {
+            console.error('Registration error:', error);
+            throw error;
         }
-        
-        return response.json();
     },
 
     async logout() {
-        const response = await fetch(`${API_URL}/logout`, {
-            method: 'GET',
-            credentials: 'include',
-        });
-        
-        if (!response.ok) {
-            throw new Error('Logout failed');
+        try {
+            const response = await fetch(`${API_URL}/logout`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                credentials: 'include',
+            });
+            return handleResponse(response);
+        } catch (error) {
+            console.error('Logout error:', error);
+            throw error;
         }
-        
-        return response.json();
     },
 
     async getCurrentUser() {
-        const response = await fetch(`${API_URL}/user`, {
-            method: 'GET',
-            credentials: 'include',
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to get user');
+        try {
+            const response = await fetch(`${API_URL}/user`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                credentials: 'include',
+            });
+            return handleResponse(response);
+        } catch (error) {
+            console.error('Get user error:', error);
+            throw error;
         }
-        
-        return response.json();
     },
 }; 

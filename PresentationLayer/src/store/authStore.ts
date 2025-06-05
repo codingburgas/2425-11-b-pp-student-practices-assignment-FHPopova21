@@ -1,48 +1,53 @@
-
 import { create } from 'zustand';
-import { User } from '@/types';
+import { authService } from '@/services/authService';
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+}
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  login: (user: User) => void;
-  logout: () => void;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
+  register: (data: { username: string; email: string; password: string }) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
-  login: (user) => set({ user, isAuthenticated: true }),
-  logout: () => set({ user: null, isAuthenticated: false }),
-}));
 
-// Mock users for demo
-export const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'user@smartfit.bg',
-    name: 'Иван Петров',
-    role: 'user',
-    bodyMeasurements: {
-      height: 175,
-      weight: 70,
-      gender: 'male',
-      waist: 85,
-      chest: 95,
-      bodyType: 'medium',
-      age: 28
+  login: async (credentials) => {
+    try {
+      const response = await authService.login(credentials);
+      set({ user: response.user, isAuthenticated: true });
+    } catch (error) {
+      throw error;
     }
   },
-  {
-    id: '2',
-    email: 'merchant@smartfit.bg',
-    name: 'Мария Георгиева',
-    role: 'merchant'
+
+  register: async (data) => {
+    try {
+      await authService.register(data);
+      // After successful registration, log the user in
+      const response = await authService.login({
+        email: data.email,
+        password: data.password,
+      });
+      set({ user: response.user, isAuthenticated: true });
+    } catch (error) {
+      throw error;
+    }
   },
-  {
-    id: '3',
-    email: 'admin@smartfit.bg',
-    name: 'Администратор',
-    role: 'admin'
-  }
-];
+
+  logout: async () => {
+    try {
+      await authService.logout();
+      set({ user: null, isAuthenticated: false });
+    } catch (error) {
+      throw error;
+    }
+  },
+}));

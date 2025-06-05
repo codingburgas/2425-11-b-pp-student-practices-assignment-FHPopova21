@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuthStore, mockUsers } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,37 +20,22 @@ const SignIn = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock authentication
-    const user = mockUsers.find(u => u.email === email);
-    
-    if (user && password === 'password') {
-      login(user);
+    try {
+      await login({ email, password });
       toast({
         title: "Успешен вход",
-        description: `Добре дошли, ${user.name}!`,
+        description: "Добре дошли в SmartFit!",
       });
-      
-      // Redirect based on role
-      switch (user.role) {
-        case 'user':
-          navigate('/dashboard');
-          break;
-        case 'merchant':
-          navigate('/merchant');
-          break;
-        case 'admin':
-          navigate('/admin');
-          break;
-      }
-    } else {
+      navigate('/dashboard');
+    } catch (error) {
       toast({
         title: "Грешка при вход",
         description: "Невалиден имейл или парола",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
@@ -96,16 +80,6 @@ const SignIn = () => {
               {isLoading ? 'Влизане...' : 'Вход'}
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-beige-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-2">Demo акаунти:</p>
-            <div className="space-y-1 text-xs text-gray-600">
-              <p><strong>Потребител:</strong> user@smartfit.bg</p>
-              <p><strong>Търговец:</strong> merchant@smartfit.bg</p>
-              <p><strong>Админ:</strong> admin@smartfit.bg</p>
-              <p className="mt-2"><strong>Парола:</strong> password</p>
-            </div>
-          </div>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
