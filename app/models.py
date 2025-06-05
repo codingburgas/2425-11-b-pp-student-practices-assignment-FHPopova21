@@ -4,24 +4,23 @@ from wtforms import SelectField, FloatField, IntegerField, SubmitField, StringFi
 from wtforms.validators import DataRequired
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-
 from . import db
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=False)
-    username = db.Column(db.String(300), unique=True, nullable=False)
-    email = db.Column(db.String(300), unique=True, nullable=False)
-    __password = db.Column("password", db.String(400), nullable=False)
-
-    @property
-    def password(self):
-        return self.__password
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128))
     
-    @password.setter
-    def password(self, password):
-        self.__password = generate_password_hash(password)
-
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
     def check_password(self, password):
-        return check_password_hash(self.__password, password)
+        return check_password_hash(self.password_hash, password)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email
+        }

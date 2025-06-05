@@ -1,48 +1,53 @@
 from flask import Blueprint, jsonify, request
 from .models import User, db
-from .forms import RegisterForm, LoginForm
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import login_user, logout_user, login_required, current_user
 
-main = Blueprint('main', __name__)
+auth = Blueprint('auth', __name__)
 
-@main.route('/api/register', methods=['POST'])
+@auth.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
-
-    if User.query.filter_by(username=data['username']).first():
-        return jsonify({'message': 'Username already exists'}), 400
-    if User.query.filter_by(email=data['email']).first():
-        return jsonify({'message': 'Email already exists'}), 400
     
-    new_user = User(
-        first_name=data['first_name'],
-        last_name=data['last_name'],
+    # Check if user already exists
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({'error': 'Email already registered'}), 400
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({'error': 'Username already taken'}), 400
+    
+    # Create new user
+    user = User(
         username=data['username'],
-        email=data['email'],
-        password=check_password_hash(data['password'])
+        email=data['email']
     )
-
-    db.session.add(new_user)
+    user.set_password(data['password'])
+    
+    db.session.add(user)
     db.session.commit()
+    
     return jsonify({'message': 'User registered successfully'}), 201
 
-
-
-
-@main.route('/api/login', methods=['POST'])
+@auth.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user = User.query.filter_by(username=data['username']).first()
+    user = User.query.filter_by(email=data['email']).first()
+    
+    if user and user.check_password(data['password']):
+        login_user(user)
+        return jsonify({
+            'message': 'Logged in successfully',
+            'user': user.to_dict()
+        }), 200
+    
+    return jsonify({'error': 'Invalid email or password'}), 401
 
-    if not user or not check_password_hash(user.password, data['password']):
-        return jsonify({'error': 'Invalid username or password'}), 401
+@auth.route('/api/logout')
+@login_required
+def logout():
+    logout_user()
+    return jsonify({'message': 'Logged out successfully'}), 200
 
-    return jsonify({
-        'message': 'Login successful',
-        'user': {
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name
-        }
-    }), 200
+@auth.route('/api/user')
+@login_required
+def get_user():
+    return jsonify(current_user.to_dict()), 200
