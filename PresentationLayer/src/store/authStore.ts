@@ -5,12 +5,14 @@ interface User {
   id: number;
   username: string;
   email: string;
+  role: string;
+  name: string;
 }
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (credentials: { username: string; password: string }) => Promise<void>;
   register: (data: { username: string; email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -33,7 +35,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       await authService.register(data);
       // After successful registration, log the user in
       const response = await authService.login({
-        email: data.email,
+        username: data.username,
         password: data.password,
       });
       set({ user: response.user, isAuthenticated: true });
@@ -46,6 +48,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await authService.logout();
       set({ user: null, isAuthenticated: false });
+      // Navigate to home page after logout
+      window.location.href = '/';
     } catch (error) {
       throw error;
     }

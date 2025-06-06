@@ -54,7 +54,7 @@ def login():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
             
-        user = User.query.filter_by(email=data['email']).first()
+        user = User.query.filter_by(username=data['username']).first()
         
         if user and user.check_password(data['password']):
             login_user(user)
@@ -64,7 +64,7 @@ def login():
                 'user': user.to_dict()
             }), 200
         
-        return jsonify({'error': 'Invalid email or password'}), 401
+        return jsonify({'error': 'Invalid username or password'}), 401
         
     except Exception as e:
         logging.error(f"Error during login: {str(e)}")
@@ -74,7 +74,9 @@ def login():
 @login_required
 def logout():
     try:
+        username = current_user.username
         logout_user()
+        logging.debug(f"Successfully logged out user: {username}")
         return jsonify({'message': 'Logged out successfully'}), 200
     except Exception as e:
         logging.error(f"Error during logout: {str(e)}")

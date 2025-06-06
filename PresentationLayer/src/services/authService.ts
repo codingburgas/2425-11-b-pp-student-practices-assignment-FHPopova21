@@ -1,12 +1,14 @@
 const API_URL = 'http://localhost:5001/api';
 
 export interface LoginData {
-    email: string;
+    username: string;
     password: string;
 }
 
-export interface RegisterData extends LoginData {
+export interface RegisterData {
     username: string;
+    email: string;
+    password: string;
 }
 
 const handleResponse = async (response: Response) => {

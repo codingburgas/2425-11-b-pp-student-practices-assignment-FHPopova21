@@ -8,7 +8,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const SignIn = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -21,7 +21,7 @@ const SignIn = () => {
     setIsLoading(true);
 
     try {
-      await login({ email, password });
+      await login({ username, password });
       toast({
         title: "Успешен вход",
         description: "Добре дошли в SmartFit!",
@@ -30,7 +30,7 @@ const SignIn = () => {
     } catch (error) {
       toast({
         title: "Грешка при вход",
-        description: "Невалиден имейл или парола",
+        description: "Невалидно потребителско име или парола",
         variant: "destructive",
       });
     } finally {
@@ -49,14 +49,15 @@ const SignIn = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Имейл адрес</Label>
+              <Label htmlFor="username">Потребителско име</Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 className="border-beige-300 focus:border-beige-500"
+                placeholder="Въведете потребителско име"
               />
             </div>
             
@@ -69,6 +70,7 @@ const SignIn = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="border-beige-300 focus:border-beige-500"
+                placeholder="Въведете парола"
               />
             </div>
 
