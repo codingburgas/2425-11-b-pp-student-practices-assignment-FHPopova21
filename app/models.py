@@ -7,6 +7,30 @@ from flask_login import UserMixin
 from . import db
 from datetime import datetime
 
+class BodyMeasurements(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
+    height = db.Column(db.Float, nullable=False)  # in cm
+    weight = db.Column(db.Float, nullable=False)  # in kg
+    gender = db.Column(db.String(10), nullable=False)  # 'male' or 'female'
+    chest = db.Column(db.Float, nullable=False)  # in cm
+    waist = db.Column(db.Float, nullable=False)  # in cm
+    body_type = db.Column(db.String(20), nullable=False)  # 'slim', 'medium', or 'large'
+    age = db.Column(db.Integer)  # optional
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'height': self.height,
+            'weight': self.weight,
+            'gender': self.gender,
+            'chest': self.chest,
+            'waist': self.waist,
+            'bodyType': self.body_type,
+            'age': self.age
+        }
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -14,6 +38,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     role = db.Column(db.String(20), default='user')  # 'user', 'merchant', or 'admin'
     recommendations = db.relationship('RecommendationHistory', backref='user', lazy=True)
+    body_measurements = db.relationship('BodyMeasurements', backref='user', uselist=False, lazy=True)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -27,7 +52,8 @@ class User(UserMixin, db.Model):
             'username': self.username,
             'email': self.email,
             'role': self.role,
-            'name': self.username  # Adding name field for frontend compatibility
+            'name': self.username,  # Adding name field for frontend compatibility
+            'bodyMeasurements': self.body_measurements.to_dict() if self.body_measurements else None
         }
 
 class RecommendationHistory(db.Model):

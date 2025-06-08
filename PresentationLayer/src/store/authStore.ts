@@ -7,6 +7,15 @@ interface User {
   email: string;
   role: string;
   name: string;
+  bodyMeasurements?: {
+    height: number;
+    weight: number;
+    gender: 'male' | 'female';
+    chest: number;
+    waist: number;
+    bodyType: 'slim' | 'medium' | 'large';
+    age?: number;
+  };
 }
 
 interface AuthState {
@@ -15,6 +24,7 @@ interface AuthState {
   login: (credentials: { username: string; password: string }) => Promise<void>;
   register: (data: { username: string; email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -53,5 +63,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       throw error;
     }
+  },
+
+  updateUser: (user) => {
+    set({ user, isAuthenticated: true });
   },
 }));

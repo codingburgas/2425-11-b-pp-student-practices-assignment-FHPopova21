@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +8,10 @@ import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/hooks/use-toast';
 import { BodyMeasurements } from '@/types';
 import { Save, User } from 'lucide-react';
+import { measurementsService } from '@/services/measurementsService';
 
 const Measurements = () => {
-  const { user, login } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const { toast } = useToast();
   
   const [measurements, setMeasurements] = useState<BodyMeasurements>({
@@ -27,29 +27,46 @@ const Measurements = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.bodyMeasurements) {
-      setMeasurements(user.bodyMeasurements);
-    }
-  }, [user]);
+    const fetchMeasurements = async () => {
+      try {
+        const data = await measurementsService.getMeasurements();
+        if (data) {
+          setMeasurements(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch measurements:', error);
+      }
+    };
+
+    fetchMeasurements();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock save - in real app would call API
-    const updatedUser = {
-      ...user!,
-      bodyMeasurements: measurements,
-    };
-
-    login(updatedUser);
-    
-    toast({
-      title: "Мерките са запазени",
-      description: "Вашите телесни мерки са успешно актуализирани!",
-    });
-
-    setIsLoading(false);
+    try {
+      const response = await measurementsService.saveMeasurements(measurements);
+      
+      // Update the user in the auth store with the new measurements
+      if (response.user) {
+        updateUser(response.user);
+      }
+      
+      toast({
+        title: "Мерките са запазени",
+        description: "Вашите телесни мерки са успешно актуализирани!",
+      });
+    } catch (error) {
+      console.error('Failed to save measurements:', error);
+      toast({
+        title: "Грешка",
+        description: "Възникна проблем при запазването на мерките. Моля, опитайте отново.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: keyof BodyMeasurements, value: string | number) => {
