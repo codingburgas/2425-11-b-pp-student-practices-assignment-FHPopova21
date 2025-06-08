@@ -5,6 +5,7 @@ from wtforms.validators import DataRequired
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from . import db
+from datetime import datetime
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -12,6 +13,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
     role = db.Column(db.String(20), default='user')  # 'user', 'merchant', or 'admin'
+    recommendations = db.relationship('RecommendationHistory', backref='user', lazy=True)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -25,5 +27,32 @@ class User(UserMixin, db.Model):
             'username': self.username,
             'email': self.email,
             'role': self.role,
-            'name': self.username  
+            'name': self.username  # Adding name field for frontend compatibility
+        }
+
+class RecommendationHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    clothing_type = db.Column(db.String(50), nullable=False)
+    recommended_size = db.Column(db.String(10), nullable=False)
+    height = db.Column(db.String(10))
+    weight = db.Column(db.String(10))
+    chest = db.Column(db.String(10))
+    waist = db.Column(db.String(10))
+    body_type = db.Column(db.String(20))
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'date': self.date.isoformat(),
+            'clothingType': self.clothing_type,
+            'recommendedSize': self.recommended_size,
+            'measurements': {
+                'height': self.height,
+                'weight': self.weight,
+                'chest': self.chest,
+                'waist': self.waist,
+                'bodyType': self.body_type
+            }
         }

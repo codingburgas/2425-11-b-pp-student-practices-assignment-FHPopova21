@@ -88,4 +88,20 @@ export const authService = {
             throw error;
         }
     },
+
+    async getUserRecommendations() {
+        try {
+            const response = await fetch(`${API_URL}/user/recommendations`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                credentials: 'include',
+            });
+            return handleResponse(response);
+        } catch (error) {
+            console.error('Get recommendations error:', error);
+            throw error;
+        }
+    },
 }; 

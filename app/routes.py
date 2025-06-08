@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from .models import User, db
+from .models import User, db, RecommendationHistory
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
 import logging
@@ -89,4 +89,14 @@ def get_user():
         return jsonify(current_user.to_dict()), 200
     except Exception as e:
         logging.error(f"Error getting user data: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@auth.route('/api/user/recommendations')
+@login_required
+def get_user_recommendations():
+    try:
+        recommendations = RecommendationHistory.query.filter_by(user_id=current_user.id).order_by(RecommendationHistory.date.desc()).all()
+        return jsonify([rec.to_dict() for rec in recommendations]), 200
+    except Exception as e:
+        logging.error(f"Error getting user recommendations: {str(e)}")
         return jsonify({'error': str(e)}), 500
