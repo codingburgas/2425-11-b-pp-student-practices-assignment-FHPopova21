@@ -6,11 +6,13 @@ import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const SignUp = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('user');
   const [isLoading, setIsLoading] = useState(false);
   
   const { register } = useAuthStore();
@@ -35,7 +37,7 @@ const SignUp = () => {
         throw new Error('Username must be at least 3 characters long');
       }
 
-      await register({ username, email, password });
+      await register({ username, email, password, role });
       toast({
         title: "Успешна регистрация",
         description: "Добре дошли в SmartFit!",
@@ -102,6 +104,19 @@ const SignUp = () => {
                 className="border-beige-300 focus:border-beige-500"
                 placeholder="Поне 6 символа"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">Тип акаунт</Label>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger className="border-beige-300 focus:border-beige-500">
+                  <SelectValue placeholder="Изберете тип акаунт" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Потребител</SelectItem>
+                  <SelectItem value="merchant">Търговец</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Button 

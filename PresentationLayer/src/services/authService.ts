@@ -9,6 +9,7 @@ export interface RegisterData {
     username: string;
     email: string;
     password: string;
+    role: string;
 }
 
 const handleResponse = async (response: Response) => {
