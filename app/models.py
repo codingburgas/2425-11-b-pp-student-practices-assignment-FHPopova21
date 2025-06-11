@@ -67,8 +67,33 @@ class RecommendationHistory(db.Model):
     chest = db.Column(db.String(10))
     waist = db.Column(db.String(10))
     body_type = db.Column(db.String(20))
+    item_identifier = db.Column(db.String(100))  # To group related recommendations
     
     def to_dict(self):
+        related = []
+        if self.item_identifier:
+            related = RecommendationHistory.query.filter(
+                RecommendationHistory.item_identifier == self.item_identifier,
+                RecommendationHistory.id != self.id,
+                RecommendationHistory.user_id == self.user_id
+            ).order_by(RecommendationHistory.date.desc()).all()
+
+        return {
+            'id': self.id,
+            'date': self.date.isoformat(),
+            'clothingType': self.clothing_type,
+            'recommendedSize': self.recommended_size,
+            'measurements': {
+                'height': self.height,
+                'weight': self.weight,
+                'chest': self.chest,
+                'waist': self.waist,
+                'bodyType': self.body_type
+            },
+            'relatedRecommendations': [r.to_dict_without_related() for r in related]
+        }
+    
+    def to_dict_without_related(self):
         return {
             'id': self.id,
             'date': self.date.isoformat(),

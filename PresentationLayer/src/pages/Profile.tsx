@@ -2,11 +2,16 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthStore } from '@/store/authStore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, History, Ruler } from 'lucide-react';
+import { User, History, Ruler, ChevronDown, ChevronUp } from 'lucide-react';
 import { authService } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface RecommendationHistory {
   id: number;
@@ -20,12 +25,22 @@ interface RecommendationHistory {
     waist: string;
     bodyType: string;
   };
+  relatedRecommendations?: RecommendationHistory[];
 }
 
 const Profile = () => {
   const { user } = useAuthStore();
   const [recommendationHistory, setRecommendationHistory] = useState<RecommendationHistory[]>([]);
   const { toast } = useToast();
+  const [expandedItems, setExpandedItems] = useState<number[]>([]);
+
+  const toggleExpand = (id: number) => {
+    setExpandedItems(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id]
+    );
+  };
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -53,6 +68,35 @@ const Profile = () => {
   if (!user) {
     return null;
   }
+
+  const renderRecommendationDetails = (recommendation: RecommendationHistory) => (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div>
+        <label className="text-sm font-medium text-gray-500">Препоръчан размер</label>
+        <p className="text-xl font-bold text-beige-600">{recommendation.recommendedSize}</p>
+      </div>
+      <div>
+        <label className="text-sm font-medium text-gray-500">Височина</label>
+        <p>{recommendation.measurements.height} см</p>
+      </div>
+      <div>
+        <label className="text-sm font-medium text-gray-500">Тегло</label>
+        <p>{recommendation.measurements.weight} кг</p>
+      </div>
+      <div>
+        <label className="text-sm font-medium text-gray-500">Гръдна обиколка</label>
+        <p>{recommendation.measurements.chest} см</p>
+      </div>
+      <div>
+        <label className="text-sm font-medium text-gray-500">Талия</label>
+        <p>{recommendation.measurements.waist} см</p>
+      </div>
+      <div>
+        <label className="text-sm font-medium text-gray-500">Телосложение</label>
+        <p className="capitalize">{recommendation.measurements.bodyType}</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -174,44 +218,61 @@ const Profile = () => {
           <div className="space-y-4">
             {recommendationHistory.length > 0 ? (
               recommendationHistory.map((recommendation) => (
-                <Card key={recommendation.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      <span>{recommendation.clothingType}</span>
-                      <span className="text-sm text-gray-500">
-                        {new Date(recommendation.date).toLocaleDateString('bg-BG')}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Препоръчан размер</label>
-                        <p className="text-xl font-bold text-beige-600">{recommendation.recommendedSize}</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Височина</label>
-                        <p>{recommendation.measurements.height} см</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Тегло</label>
-                        <p>{recommendation.measurements.weight} кг</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Гръдна обиколка</label>
-                        <p>{recommendation.measurements.chest} см</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Талия</label>
-                        <p>{recommendation.measurements.waist} см</p>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500">Телосложение</label>
-                        <p className="capitalize">{recommendation.measurements.bodyType}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Collapsible
+                  key={recommendation.id}
+                  open={expandedItems.includes(recommendation.id)}
+                  onOpenChange={() => toggleExpand(recommendation.id)}
+                >
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center justify-between">
+                        <span>{recommendation.clothingType}</span>
+                        <div className="flex items-center space-x-4">
+                          <span className="text-sm text-gray-500">
+                            {new Date(recommendation.date).toLocaleDateString('bg-BG')}
+                          </span>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="p-0">
+                              {expandedItems.includes(recommendation.id) ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </CollapsibleTrigger>
+                        </div>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {renderRecommendationDetails(recommendation)}
+                      
+                      <CollapsibleContent>
+                        {recommendation.relatedRecommendations && recommendation.relatedRecommendations.length > 0 && (
+                          <div className="mt-6">
+                            <h4 className="text-md font-medium text-gray-700 mb-4">Предишни препоръки за този артикул</h4>
+                            <div className="space-y-4">
+                              {recommendation.relatedRecommendations.map((related, index) => (
+                                <Card key={related.id} className="bg-gray-50">
+                                  <CardHeader>
+                                    <CardTitle className="text-sm flex justify-between">
+                                      <span>Препоръка #{index + 1}</span>
+                                      <span className="text-gray-500">
+                                        {new Date(related.date).toLocaleDateString('bg-BG')}
+                                      </span>
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                    {renderRecommendationDetails(related)}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </CardContent>
+                  </Card>
+                </Collapsible>
               ))
             ) : (
               <Card>

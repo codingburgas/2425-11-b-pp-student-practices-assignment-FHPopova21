@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,8 @@ import { calculateSizeRecommendation } from '@/utils/aiRecommendation';
 import { ClothingItem, SizeRecommendation } from '@/types';
 import { TrendingUp, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+const API_URL = 'http://localhost:5001/api';
 
 const Recommendation = () => {
   const { user } = useAuthStore();
@@ -35,6 +36,44 @@ const Recommendation = () => {
     }
   }, [selectedItem, user?.bodyMeasurements]);
 
+  const saveRecommendation = async (result: SizeRecommendation) => {
+    try {
+      const response = await fetch(`${API_URL}/recommendations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          clothingType: selectedItem?.type,
+          recommendedSize: result.recommendedSize,
+          itemIdentifier: selectedItem?.id,
+          measurements: {
+            height: user?.bodyMeasurements?.height.toString(),
+            weight: user?.bodyMeasurements?.weight.toString(),
+            chest: user?.bodyMeasurements?.chest.toString(),
+            waist: user?.bodyMeasurements?.waist.toString(),
+            bodyType: user?.bodyMeasurements?.bodyType
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save recommendation');
+      }
+
+      const data = await response.json();
+      console.log('Recommendation saved:', data);
+    } catch (error) {
+      console.error('Error saving recommendation:', error);
+      toast({
+        title: "Грешка",
+        description: "Възникна проблем при запазването на препоръката",
+        variant: "destructive",
+      });
+    }
+  };
+
   const generateRecommendation = async () => {
     if (!selectedItem || !user?.bodyMeasurements) return;
 
@@ -45,6 +84,10 @@ const Recommendation = () => {
     
     const result = calculateSizeRecommendation(user.bodyMeasurements, selectedItem);
     setRecommendation(result);
+    
+    // Save the recommendation
+    await saveRecommendation(result);
+    
     setIsLoading(false);
 
     toast({

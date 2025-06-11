@@ -3,6 +3,7 @@ from .models import User, db, RecommendationHistory, BodyMeasurements
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
 import logging
+import uuid
 
 auth = Blueprint('auth', __name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -21,13 +22,11 @@ def register():
             if field not in data:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
         
-        # Check if user already exists
         if User.query.filter_by(email=data['email']).first():
             return jsonify({'error': 'Email already registered'}), 400
         if User.query.filter_by(username=data['username']).first():
             return jsonify({'error': 'Username already taken'}), 400
         
-        # Create new user
         user = User(
             username=data['username'],
             email=data['email']
@@ -154,4 +153,50 @@ def get_measurements():
         return jsonify(None), 404
     except Exception as e:
         logging.error(f"Error getting measurements: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@auth.route('/api/recommendations', methods=['POST'])
+@login_required
+def save_recommendation():
+    try:
+        data = request.get_json()
+        logging.debug(f"Received recommendation data: {data}")
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        required_fields = ['clothingType', 'recommendedSize', 'measurements']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        measurements = data['measurements']
+        
+        # Generate or use existing item identifier
+        item_identifier = data.get('itemIdentifier', str(uuid.uuid4()))
+        
+        recommendation = RecommendationHistory(
+            user_id=current_user.id,
+            clothing_type=data['clothingType'],
+            recommended_size=data['recommendedSize'],
+            height=str(measurements.get('height')),
+            weight=str(measurements.get('weight')),
+            chest=str(measurements.get('chest')),
+            waist=str(measurements.get('waist')),
+            body_type=measurements.get('bodyType'),
+            item_identifier=item_identifier
+        )
+        
+        db.session.add(recommendation)
+        db.session.commit()
+        logging.debug(f"Successfully saved recommendation for user: {current_user.username}")
+        
+        return jsonify({
+            'message': 'Recommendation saved successfully',
+            'recommendation': recommendation.to_dict()
+        }), 201
+        
+    except Exception as e:
+        logging.error(f"Error saving recommendation: {str(e)}")
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
