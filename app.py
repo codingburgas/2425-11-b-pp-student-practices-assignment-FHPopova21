@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from app.models import db, User
 from app.routes import auth
+from app.ml.predict import ml_routes
 import os
 import logging
 
@@ -46,12 +47,14 @@ def index():
             'register': '/api/register',
             'login': '/api/login',
             'logout': '/api/logout',
-            'user': '/api/user'
+            'user': '/api/user',
+            'predict-size': '/api/predict-size'
         }
     })
 
 # Register blueprints
 app.register_blueprint(auth)
+app.register_blueprint(ml_routes)
 logging.debug("Registered auth blueprint with routes: %s", [str(rule) for rule in app.url_map.iter_rules()])
 
 # Create database tables

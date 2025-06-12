@@ -5,4 +5,7 @@ Flask-CORS==3.0.10
 Flask-WTF==1.0.0
 Flask-Migrate==4.0.5
 Werkzeug==2.0.1
-SQLAlchemy==1.4.23 
+SQLAlchemy==1.4.23
+pandas==1.5.3
+scikit-learn==1.2.2
+numpy==1.24.3 
