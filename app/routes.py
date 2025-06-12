@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, request
 from .models import User, db, RecommendationHistory, BodyMeasurements
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
+from app.ml.ml_model import predict_size
+
 import logging
 import uuid
 
@@ -100,61 +102,6 @@ def get_user_recommendations():
         logging.error(f"Error getting user recommendations: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@auth.route('/api/measurements', methods=['POST'])
-@login_required
-def save_measurements():
-    try:
-        data = request.get_json()
-        logging.debug(f"Received measurements data: {data}")
-        
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-            
-        required_fields = ['height', 'weight', 'gender', 'chest', 'waist', 'bodyType']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
-
-        # Convert bodyType to body_type for database
-        data['body_type'] = data.pop('bodyType')
-        
-        # Check if user already has measurements
-        measurements = BodyMeasurements.query.filter_by(user_id=current_user.id).first()
-        
-        if measurements:
-            # Update existing measurements
-            for key, value in data.items():
-                setattr(measurements, key, value)
-        else:
-            # Create new measurements
-            measurements = BodyMeasurements(user_id=current_user.id, **data)
-            db.session.add(measurements)
-        
-        db.session.commit()
-        logging.debug(f"Successfully saved measurements for user: {current_user.username}")
-        
-        return jsonify({
-            'message': 'Measurements saved successfully',
-            'user': current_user.to_dict()
-        }), 200
-        
-    except Exception as e:
-        logging.error(f"Error saving measurements: {str(e)}")
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
-@auth.route('/api/measurements', methods=['GET'])
-@login_required
-def get_measurements():
-    try:
-        measurements = BodyMeasurements.query.filter_by(user_id=current_user.id).first()
-        if measurements:
-            return jsonify(measurements.to_dict()), 200
-        return jsonify(None), 404
-    except Exception as e:
-        logging.error(f"Error getting measurements: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
 @auth.route('/api/recommendations', methods=['POST'])
 @login_required
 def save_recommendation():
@@ -162,23 +109,22 @@ def save_recommendation():
         data = request.get_json()
         logging.debug(f"Received recommendation data: {data}")
         
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-            
-        required_fields = ['clothingType', 'recommendedSize', 'measurements']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
+        if not data or 'measurements' not in data:
+            return jsonify({'error': 'No data provided or missing measurements'}), 400
         
         measurements = data['measurements']
-        
-        # Generate or use existing item identifier
+
+        # Предсказваме размер
+        recommended_size = predict_size(measurements)
+        if not recommended_size:
+            return jsonify({'error': 'Could not predict size'}), 500
+
         item_identifier = data.get('itemIdentifier', str(uuid.uuid4()))
-        
+
         recommendation = RecommendationHistory(
             user_id=current_user.id,
-            clothing_type=data['clothingType'],
-            recommended_size=data['recommendedSize'],
+            clothing_type=data.get('clothingType', 'general'),
+            recommended_size=recommended_size,
             height=str(measurements.get('height')),
             weight=str(measurements.get('weight')),
             chest=str(measurements.get('chest')),
@@ -189,14 +135,31 @@ def save_recommendation():
         
         db.session.add(recommendation)
         db.session.commit()
-        logging.debug(f"Successfully saved recommendation for user: {current_user.username}")
-        
+
         return jsonify({
             'message': 'Recommendation saved successfully',
             'recommendation': recommendation.to_dict()
         }), 201
-        
+
     except Exception as e:
         logging.error(f"Error saving recommendation: {str(e)}")
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@auth.route('/api/predict-size', methods=['POST'])
+def predict_size_route():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No input data provided'}), 400
+
+        # Извикваме функцията за предсказване на размер
+        size = predict_size(data)
+        if size is None:
+            return jsonify({'error': 'Prediction failed'}), 500
+        
+        return jsonify({'predicted_size': size}), 200
+
+    except Exception as e:
+        logging.error(f"Error during size prediction: {e}")
         return jsonify({'error': str(e)}), 500

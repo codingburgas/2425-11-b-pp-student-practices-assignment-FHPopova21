@@ -1,54 +1,89 @@
-import pickle
-import pandas as pd
 from flask import Blueprint, request, jsonify
-import os
+from app.ml.ml_model import predict_size
+import logging
+import traceback
+from flask_cors import cross_origin
 
-ml_routes = Blueprint('ml_routes', __name__)
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-# Load the model
-model = None
-model_path = os.path.join(os.path.dirname(__file__), 'model.pkl')
+predict_bp = Blueprint('predict', __name__)
 
-def load_model():
-    global model
-    if model is None and os.path.exists(model_path):
-        with open(model_path, 'rb') as f:
-            model = pickle.load(f)
-
-@ml_routes.before_app_first_request
-def initialize():
-    load_model()
-
-@ml_routes.route('/api/predict-size', methods=['POST'])
-def predict_size():
+@predict_bp.route('/predict', methods=['POST', 'OPTIONS'])
+@cross_origin()
+def predict():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
-        # Get input data from request
         data = request.get_json()
-        required_fields = [
-            'височина', 'тегло', 'талия', 'гръдна_обиколка', 'ширина_дреха',
-            'пол', 'телосложение', 'материя', 'тип_дреха'
-        ]
-        
-        # Validate input
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
+        logger.debug(f"Received data: {data}")
 
-        # Create DataFrame from input
-        input_df = pd.DataFrame([data])
+        # Validate required fields
+        required_fields = ['height', 'weight', 'waist', 'chest', 'gender', 
+                         'body_type', 'material', 'garment_type', 'garment_width']
         
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            logger.error(f"Missing required fields: {missing_fields}")
+            return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
+
         # Make prediction
-        if model is None:
-            load_model()
-            if model is None:
-                return jsonify({'error': 'Model not loaded'}), 500
-            
-        predicted_size = model.predict(input_df)[0]
+        prediction, confidence = predict_size(data)
         
+        logger.debug(f"Prediction: {prediction}, Confidence: {confidence}")
         return jsonify({
-            'predicted_size': predicted_size,
-            'success': True
+            "size": prediction,
+            "confidence": confidence
         })
-        
+
     except Exception as e:
-        return jsonify({'error': str(e)}), 500 
+        error_msg = str(e)
+        logger.error(f"Prediction failed: {error_msg}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({"error": error_msg}), 500
+
+@predict_bp.route('/api/recommendations', methods=['POST', 'OPTIONS'])
+@cross_origin()
+def get_recommendations():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
+    try:
+        data = request.get_json()
+        logging.debug(f"Received recommendation data: {data}")
+        logging.debug(f"Request JSON: {data}")
+        measurements = data.get('measurements', {})
+        logging.debug(f"Received measurements for prediction: {measurements}")
+        clothing_type = data.get('clothingType', '').lower()
+        default_widths = {
+            'shirt': 55,
+            'pants': 40,
+            'jacket': 58,
+            'dress': 45,
+            'skirt': 38,
+            'sweater': 54
+        }
+        measurements['garment_width'] = str(default_widths.get(clothing_type, 50))
+        prediction_result = predict_size(measurements)
+        if not prediction_result:
+            logging.error("Prediction result is None in recommendations endpoint")
+            return jsonify({'error': 'Failed to get size prediction'}), 500
+        size, confidence = prediction_result
+        logging.info(f"Prediction result: {size} with confidence {confidence}")
+        recommendations = get_clothing_recommendations(
+            data.get('clothingType'),
+            size,
+            data.get('itemIdentifier')
+        )
+        return jsonify({
+            'size': size,
+            'confidence': float(confidence),
+            'recommendations': recommendations
+        })
+    except Exception as e:
+        error_msg = str(e)
+        logging.error(f"Error in recommendation endpoint: {error_msg}")
+        logging.error(traceback.format_exc())
+        return jsonify({'error': error_msg}), 500

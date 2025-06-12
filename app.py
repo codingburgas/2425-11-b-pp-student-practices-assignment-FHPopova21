@@ -5,7 +5,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from app.models import db, User
 from app.routes import auth
-from app.ml.predict import ml_routes
+from app.ml.predict import predict_bp
 import os
 import logging
 
@@ -14,9 +14,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Configure CORS
 CORS(app, 
-     resources={r"/api/*": {"origins": ["http://localhost:8080", "http://192.168.0.128:8080"]}},
+     resources={r"/api/*": {"origins": ["http://localhost:8080", "http://localhost:3000", "http://192.168.0.128:8080"]}},
      supports_credentials=True,
-     allow_headers=["Content-Type", "Authorization"],
+     allow_headers=["Content-Type", "Authorization", "Accept"],
      methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
 # Ensure the instance folder exists
@@ -54,7 +54,7 @@ def index():
 
 # Register blueprints
 app.register_blueprint(auth)
-app.register_blueprint(ml_routes)
+app.register_blueprint(predict_bp)
 logging.debug("Registered auth blueprint with routes: %s", [str(rule) for rule in app.url_map.iter_rules()])
 
 # Create database tables

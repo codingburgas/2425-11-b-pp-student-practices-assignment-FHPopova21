@@ -6,12 +6,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuthStore } from '@/store/authStore';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { mockClothingItems } from '@/data/mockClothing';
-import { calculateSizeRecommendation } from '@/utils/aiRecommendation';
-import { ClothingItem, SizeRecommendation } from '@/types';
+import { ClothingItem } from '@/types';
 import { TrendingUp, AlertCircle, CheckCircle, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const API_URL = 'http://localhost:5001/api';
+
+interface SizeRecommendation {
+  recommendedSize: string;
+  confidence: number;
+  explanation: string;
+  description?: string;
+  alternativeSize?: string;
+  alternativeExplanation?: string;
+}
 
 const Recommendation = () => {
   const { user } = useAuthStore();
@@ -24,7 +32,6 @@ const Recommendation = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Check if item was passed from clothing listing
     if (location.state?.selectedItem) {
       setSelectedItem(location.state.selectedItem);
     }
@@ -75,25 +82,82 @@ const Recommendation = () => {
   };
 
   const generateRecommendation = async () => {
-    if (!selectedItem || !user?.bodyMeasurements) return;
+    try {
+      setIsLoading(true);
+      
+      // Map garment types to model's known types
+      const garmentTypeMap: { [key: string]: string } = {
+        'shirt': 't-shirt',
+        'jacket': 't-shirt',
+        'sweater': 't-shirt',
+        'skirt': 'pants',
+        'dress': 't-shirt'
+      };
 
-    setIsLoading(true);
-    
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const result = calculateSizeRecommendation(user.bodyMeasurements, selectedItem);
-    setRecommendation(result);
-    
-    // Save the recommendation
-    await saveRecommendation(result);
-    
-    setIsLoading(false);
+      // Map materials to model's known types
+      const materialMap: { [key: string]: string } = {
+        'semi-elastic': 'elastic',
+        'stretchy': 'elastic',
+        'rigid': 'non-elastic'
+      };
 
-    toast({
-      title: "AI препоръка готова!",
-      description: `Препоръчваме размер ${result.recommendedSize} с ${result.confidence}% увереност`,
-    });
+      const response = await fetch('http://localhost:5001/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          height: user?.bodyMeasurements?.height,
+          weight: user?.bodyMeasurements?.weight,
+          waist: user?.bodyMeasurements?.waist,
+          chest: user?.bodyMeasurements?.chest,
+          garment_width: selectedItem?.measurements.width,
+          gender: user?.bodyMeasurements?.gender,
+          body_type: user?.bodyMeasurements?.bodyType === 'medium' ? 'average' : user?.bodyMeasurements?.bodyType,
+          material: materialMap[selectedItem?.material || ''] || selectedItem?.material,
+          garment_type: garmentTypeMap[selectedItem?.type || ''] || selectedItem?.type
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Prediction response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate recommendation');
+      }
+
+      if (!data.size || typeof data.confidence !== 'number') {
+        throw new Error('Invalid prediction response format');
+      }
+
+      const confidence = Math.round(data.confidence * 100);
+      const recommendation: SizeRecommendation = {
+        recommendedSize: data.size,
+        confidence: confidence,
+        explanation: `We recommend size ${data.size} with ${confidence}% confidence`,
+        description: `Based on your measurements and the selected clothing type, our AI model predicts that size ${data.size} would be the best fit for you. The model is ${confidence}% confident in this recommendation.`,
+        alternativeSize: data.alternative_size,
+        alternativeExplanation: data.alternative_explanation
+      };
+
+      setRecommendation(recommendation);
+      
+      await saveRecommendation(recommendation);
+      
+      toast({
+        title: "Size recommendation generated",
+        description: `Size ${data.size} (${confidence}% confidence)`,
+      });
+    } catch (error) {
+      console.error('Error generating recommendation:', error);
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to generate recommendation',
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleItemSelect = (itemId: string) => {
@@ -235,7 +299,7 @@ const Recommendation = () => {
                   
                   <div className="mb-4">
                     <div className="flex items-center mb-2">
-                      <span className="text-green-700 font-medium">Увереност: {recommendation.confidence}%</span>
+                      <span className="text-green-700 font-medium">Увереност: {recommendation.confidence.toFixed(1)}%</span>
                       <div className="ml-3 flex-1 bg-green-200 rounded-full h-2">
                         <div 
                           className="bg-green-600 h-2 rounded-full transition-all duration-500"
