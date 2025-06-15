@@ -43,12 +43,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (data) => {
     try {
       await authService.register(data);
-      // After successful registration, log the user in
-      const response = await authService.login({
-        username: data.username,
-        password: data.password,
-      });
-      set({ user: response.user, isAuthenticated: true });
+      // After successful registration, redirect to login page
+      window.location.href = '/signin';
     } catch (error) {
       throw error;
     }
