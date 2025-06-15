@@ -24,8 +24,8 @@ const Navbar = () => {
         ];
       case 'seller':
         return [
-          { name: 'Начало', path: '/merchant', icon: Home },
-          { name: 'Мои обяви', path: '/merchant/listings', icon: ShoppingBag },
+          { name: 'Начало', path: '/seller', icon: Home },
+          { name: 'Мои обяви', path: '/seller/listings', icon: ShoppingBag },
           { name: 'Всички обяви', path: '/clothing', icon: ShoppingBag },
         ];
       case 'admin':
@@ -79,7 +79,10 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <Link to="/profile" className="flex items-center space-x-2 text-sm">
+                <Link 
+                  to={user?.role === 'seller' ? '/seller/profile' : '/profile'} 
+                  className="flex items-center space-x-2 text-sm"
+                >
                   <User size={20} className="text-beige-600" />
                   <span className="hidden md:block">{user?.name}</span>
                 </Link>
