@@ -36,7 +36,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
-    role = db.Column(db.String(20), default='user')  # 'user', 'merchant', or 'admin'
+    role = db.Column(db.String(20), default='user')  # 'user' or 'seller'
     recommendations = db.relationship('RecommendationHistory', backref='user', lazy=True)
     body_measurements = db.relationship('BodyMeasurements', backref='user', uselist=False, lazy=True)
     

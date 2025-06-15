@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import { User, Home, ShoppingBag, Settings } from 'lucide-react';
@@ -23,7 +22,7 @@ const Navbar = () => {
           { name: 'AI Препоръка', path: '/recommendation', icon: ShoppingBag },
           { name: 'Дрехи', path: '/clothing', icon: ShoppingBag },
         ];
-      case 'merchant':
+      case 'seller':
         return [
           { name: 'Начало', path: '/merchant', icon: Home },
           { name: 'Мои обяви', path: '/merchant/listings', icon: ShoppingBag },

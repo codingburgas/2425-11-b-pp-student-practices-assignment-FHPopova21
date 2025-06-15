@@ -29,15 +29,21 @@ def register():
         if User.query.filter_by(username=data['username']).first():
             return jsonify({'error': 'Username already taken'}), 400
         
+        # Set role to 'seller' if provided, otherwise default to 'user'
+        role = data.get('role', 'user')
+        if role not in ['user', 'seller']:
+            return jsonify({'error': 'Invalid role specified'}), 400
+        
         user = User(
             username=data['username'],
-            email=data['email']
+            email=data['email'],
+            role=role
         )
         user.set_password(data['password'])
         
         db.session.add(user)
         db.session.commit()
-        logging.debug(f"Successfully created user: {user.username}")
+        logging.debug(f"Successfully created user: {user.username} with role: {user.role}")
         
         return jsonify({'message': 'User registered successfully'}), 201
         
@@ -148,18 +154,15 @@ def save_recommendation():
 
 @auth.route('/api/predict-size', methods=['POST'])
 def predict_size_route():
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No input data provided'}), 400
+    data = request.get_json()
+    logging.debug(f"Received /api/predict-size data: {data}")
 
-        # Извикваме функцията за предсказване на размер
-        size = predict_size(data)
-        if size is None:
-            return jsonify({'error': 'Prediction failed'}), 500
-        
-        return jsonify({'predicted_size': size}), 200
+    if not data:
+        return jsonify({'error': 'No input data provided'}), 400
 
-    except Exception as e:
-        logging.error(f"Error during size prediction: {e}")
-        return jsonify({'error': str(e)}), 500
+    size = predict_size(data)
+    if size is None:
+        logging.error("Prediction failed")
+        return jsonify({'error': 'Prediction failed'}), 500
+
+    return jsonify({'predicted_size': size}), 200

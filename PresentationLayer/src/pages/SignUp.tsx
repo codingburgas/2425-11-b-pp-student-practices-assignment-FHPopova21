@@ -114,7 +114,7 @@ const SignUp = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">Потребител</SelectItem>
-                  <SelectItem value="merchant">Търговец</SelectItem>
+                  <SelectItem value="seller">Търговец</SelectItem>
                 </SelectContent>
               </Select>
             </div>

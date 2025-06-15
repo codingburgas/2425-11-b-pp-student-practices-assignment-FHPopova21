@@ -1,9 +1,8 @@
-
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'user' | 'merchant' | 'admin';
+  role: 'user' | 'seller';
   bodyMeasurements?: BodyMeasurements;
 }
 

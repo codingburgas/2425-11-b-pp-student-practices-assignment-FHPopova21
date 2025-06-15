@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthStore } from '@/store/authStore';
@@ -13,7 +12,7 @@ const Index = () => {
     switch (user?.role) {
       case 'user':
         return <Navigate to="/dashboard" replace />;
-      case 'merchant':
+      case 'seller':
         return <Navigate to="/merchant" replace />;
       case 'admin':
         return <Navigate to="/admin" replace />;
