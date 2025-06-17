@@ -21,6 +21,19 @@ interface SizeRecommendation {
   alternativeExplanation?: string;
 }
 
+const garmentTypeMap: { [key: string]: string } = {
+  'shirt': 't-shirt',
+  'jacket': 't-shirt',
+  'sweater': 't-shirt',
+  'skirt': 'pants',
+  'dress': 't-shirt'
+};
+const materialMap: { [key: string]: string } = {
+  'semi-elastic': 'elastic',
+  'stretchy': 'elastic',
+  'rigid': 'non-elastic'
+};
+
 const Recommendation = () => {
   const { user } = useAuthStore();
   const location = useLocation();
@@ -45,7 +58,9 @@ const Recommendation = () => {
 
   const saveRecommendation = async (result: SizeRecommendation) => {
     try {
-      const response = await fetch(`${API_URL}/recommendations`, {
+      if (!user?.bodyMeasurements) throw new Error('Missing body measurements');
+      const measurements = user.bodyMeasurements;
+      const data = await fetch(`${API_URL}/recommendations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,26 +71,25 @@ const Recommendation = () => {
           recommendedSize: result.recommendedSize,
           itemIdentifier: selectedItem?.id,
           measurements: {
-            height: user?.bodyMeasurements?.height.toString(),
-            weight: user?.bodyMeasurements?.weight.toString(),
-            chest: user?.bodyMeasurements?.chest.toString(),
-            waist: user?.bodyMeasurements?.waist.toString(),
-            bodyType: user?.bodyMeasurements?.bodyType
+            height: measurements.height.toString(),
+            weight: measurements.weight.toString(),
+            chest: measurements.chest.toString(),
+            waist: measurements.waist.toString(),
+            gender: measurements.gender,
+            body_type: measurements.bodyType === 'medium' ? 'average' : measurements.bodyType,
+            material: materialMap[selectedItem?.material || ''] || selectedItem?.material,
+            garment_type: garmentTypeMap[selectedItem?.type || ''] || selectedItem?.type,
+            garment_width: selectedItem?.measurements.width
           }
         }),
-      });
+      }).then(res => res.json());
 
-      if (!response.ok) {
-        throw new Error('Failed to save recommendation');
-      }
-
-      const data = await response.json();
       console.log('Recommendation saved:', data);
     } catch (error) {
       console.error('Error saving recommendation:', error);
       toast({
-        title: "Грешка",
-        description: "Възникна проблем при запазването на препоръката",
+        title: "Error",
+        description: "There was a problem saving the recommendation",
         variant: "destructive",
       });
     }
@@ -85,20 +99,20 @@ const Recommendation = () => {
     try {
       setIsLoading(true);
       
-      // Map garment types to model's known types
-      const garmentTypeMap: { [key: string]: string } = {
-        'shirt': 't-shirt',
-        'jacket': 't-shirt',
-        'sweater': 't-shirt',
-        'skirt': 'pants',
-        'dress': 't-shirt'
-      };
-
-      // Map materials to model's known types
-      const materialMap: { [key: string]: string } = {
-        'semi-elastic': 'elastic',
-        'stretchy': 'elastic',
-        'rigid': 'non-elastic'
+      const measurements = user?.bodyMeasurements;
+      if (!measurements) {
+        throw new Error('Missing body measurements');
+      }
+      const requestBody = {
+        height: measurements.height,
+        weight: measurements.weight,
+        waist: measurements.waist,
+        chest: measurements.chest,
+        gender: measurements.gender,
+        body_type: measurements.bodyType === 'medium' ? 'average' : measurements.bodyType,
+        material: materialMap[selectedItem?.material || ''] || selectedItem?.material,
+        garment_type: garmentTypeMap[selectedItem?.type || ''] || selectedItem?.type,
+        garment_width: selectedItem?.measurements.width
       };
 
       const response = await fetch('http://localhost:5001/predict', {
@@ -106,36 +120,21 @@ const Recommendation = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          height: user?.bodyMeasurements?.height,
-          weight: user?.bodyMeasurements?.weight,
-          waist: user?.bodyMeasurements?.waist,
-          chest: user?.bodyMeasurements?.chest,
-          garment_width: selectedItem?.measurements.width,
-          gender: user?.bodyMeasurements?.gender,
-          body_type: user?.bodyMeasurements?.bodyType === 'medium' ? 'average' : user?.bodyMeasurements?.bodyType,
-          material: materialMap[selectedItem?.material || ''] || selectedItem?.material,
-          garment_type: garmentTypeMap[selectedItem?.type || ''] || selectedItem?.type
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
       console.log('Prediction response:', data);
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate recommendation');
-      }
-
       if (!data.size || typeof data.confidence !== 'number') {
         throw new Error('Invalid prediction response format');
       }
 
-      const confidence = Math.round(data.confidence * 100);
       const recommendation: SizeRecommendation = {
         recommendedSize: data.size,
-        confidence: confidence,
-        explanation: `We recommend size ${data.size} with ${confidence}% confidence`,
-        description: `Based on your measurements and the selected clothing type, our AI model predicts that size ${data.size} would be the best fit for you. The model is ${confidence}% confident in this recommendation.`,
+        confidence: Math.round(data.confidence * 100),
+        explanation: `We recommend size ${data.size} with ${Math.round(data.confidence * 100)}% confidence`,
+        description: `Based on your measurements and the selected clothing type, our AI model predicts that size ${data.size} would be the best fit for you. The model is ${Math.round(data.confidence * 100)}% confident in this recommendation.`,
         alternativeSize: data.alternative_size,
         alternativeExplanation: data.alternative_explanation
       };
@@ -146,7 +145,7 @@ const Recommendation = () => {
       
       toast({
         title: "Size recommendation generated",
-        description: `Size ${data.size} (${confidence}% confidence)`,
+        description: `Size ${data.size} (${Math.round(data.confidence * 100)}% confidence)`,
       });
     } catch (error) {
       console.error('Error generating recommendation:', error);
@@ -175,18 +174,18 @@ const Recommendation = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-center text-xl">
               <AlertCircle className="w-6 h-6 mr-2 text-orange-500" />
-              Необходими са телесни мерки
+              Body Measurements Required
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-gray-600">
-              За да получите точна AI препоръка за размер, първо трябва да въведете вашите телесни мерки.
+              To get an accurate AI size recommendation, please enter your body measurements first.
             </p>
             <Button 
               onClick={() => navigate('/measurements')}
               className="bg-beige-600 hover:bg-beige-700 text-white"
             >
-              Въведете мерки
+              Enter Measurements
             </Button>
           </CardContent>
         </Card>
@@ -199,10 +198,10 @@ const Recommendation = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center">
           <TrendingUp className="w-8 h-8 mr-3 text-beige-600" />
-          AI Препоръка за размер
+          AI Size Recommendation
         </h1>
         <p className="text-gray-600">
-          Получете интелигентна препоръка на база вашите мерки и характеристиките на дрехата
+          Get an intelligent recommendation based on your measurements and the characteristics of the clothing
         </p>
       </div>
 
@@ -210,12 +209,12 @@ const Recommendation = () => {
         {/* Item Selection */}
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle>Изберете дреха</CardTitle>
+            <CardTitle>Select Clothing</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Select onValueChange={handleItemSelect} value={selectedItem?.id || ''}>
               <SelectTrigger className="border-beige-300 focus:border-beige-500">
-                <SelectValue placeholder="Изберете дреха за препоръка..." />
+                <SelectValue placeholder="Select clothing for recommendation..." />
               </SelectTrigger>
               <SelectContent>
                 {mockClothingItems.map((item) => (
@@ -235,30 +234,30 @@ const Recommendation = () => {
                 
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-500">Тип:</span>
+                    <span className="text-gray-500">Type:</span>
                     <p className="font-medium">{selectedItem.type}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500">Материя:</span>
+                    <span className="text-gray-500">Material:</span>
                     <p className="font-medium">{selectedItem.material}</p>
                   </div>
                 </div>
 
                 <div className="bg-white rounded p-3">
-                  <h4 className="font-medium mb-2">Размери на дрехата:</h4>
+                  <h4 className="font-medium mb-2">Clothing Measurements:</h4>
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div>
-                      <span className="text-gray-500">Ширина:</span>
-                      <p className="font-bold">{selectedItem.measurements.width}см</p>
+                      <span className="text-gray-500">Width:</span>
+                      <p className="font-bold">{selectedItem.measurements.width}cm</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Дължина:</span>
-                      <p className="font-bold">{selectedItem.measurements.length}см</p>
+                      <span className="text-gray-500">Length:</span>
+                      <p className="font-bold">{selectedItem.measurements.length}cm</p>
                     </div>
                     {selectedItem.measurements.sleeves && (
                       <div>
-                        <span className="text-gray-500">Ръкави:</span>
-                        <p className="font-bold">{selectedItem.measurements.sleeves}см</p>
+                        <span className="text-gray-500">Sleeves:</span>
+                        <p className="font-bold">{selectedItem.measurements.sleeves}cm</p>
                       </div>
                     )}
                   </div>
@@ -273,18 +272,18 @@ const Recommendation = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <TrendingUp className="w-5 h-5 mr-2" />
-              AI Препоръка
+              AI Recommendation
             </CardTitle>
           </CardHeader>
           <CardContent>
             {!selectedItem ? (
               <div className="text-center py-8 text-gray-500">
-                Изберете дреха за да получите препоръка
+                Select a clothing item to get a recommendation
               </div>
             ) : isLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin w-8 h-8 border-4 border-beige-200 border-t-beige-600 rounded-full mx-auto mb-4"></div>
-                <p className="text-gray-600">AI анализира вашите мерки...</p>
+                <p className="text-gray-600">AI is analyzing your measurements...</p>
               </div>
             ) : recommendation ? (
               <div className="space-y-6">
@@ -293,25 +292,9 @@ const Recommendation = () => {
                   <div className="flex items-center mb-3">
                     <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
                     <h3 className="text-xl font-bold text-green-800">
-                      Препоръчан размер: {recommendation.recommendedSize}
+                      Recommended Size: {recommendation.recommendedSize}
                     </h3>
                   </div>
-                  
-                  <div className="mb-4">
-                    <div className="flex items-center mb-2">
-                      <span className="text-green-700 font-medium">Увереност: {recommendation.confidence.toFixed(1)}%</span>
-                      <div className="ml-3 flex-1 bg-green-200 rounded-full h-2">
-                        <div 
-                          className="bg-green-600 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${recommendation.confidence}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-green-800 leading-relaxed">
-                    {recommendation.explanation}
-                  </p>
                 </div>
 
                 {/* Alternative Recommendation */}
@@ -320,7 +303,7 @@ const Recommendation = () => {
                     <div className="flex items-center mb-2">
                       <ArrowRight className="w-5 h-5 text-blue-600 mr-2" />
                       <h4 className="font-semibold text-blue-800">
-                        Алтернативен размер: {recommendation.alternativeSize}
+                        Alternative Size: {recommendation.alternativeSize}
                       </h4>
                     </div>
                     <p className="text-blue-700 text-sm">
@@ -331,23 +314,23 @@ const Recommendation = () => {
 
                 {/* Your Measurements Summary */}
                 <div className="bg-beige-50 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-700 mb-3">Вашите мерки:</h4>
+                  <h4 className="font-medium text-gray-700 mb-3">Your Measurements:</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-500">Височина:</span>
-                      <p className="font-medium">{user.bodyMeasurements.height}см</p>
+                      <span className="text-gray-500">Height:</span>
+                      <p className="font-medium">{user.bodyMeasurements.height}cm</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Тегло:</span>
-                      <p className="font-medium">{user.bodyMeasurements.weight}кг</p>
+                      <span className="text-gray-500">Weight:</span>
+                      <p className="font-medium">{user.bodyMeasurements.weight}kg</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Гръдна обиколка:</span>
-                      <p className="font-medium">{user.bodyMeasurements.chest}см</p>
+                      <span className="text-gray-500">Chest Circumference:</span>
+                      <p className="font-medium">{user.bodyMeasurements.chest}cm</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Талия:</span>
-                      <p className="font-medium">{user.bodyMeasurements.waist}см</p>
+                      <span className="text-gray-500">Waist:</span>
+                      <p className="font-medium">{user.bodyMeasurements.waist}cm</p>
                     </div>
                   </div>
                 </div>
@@ -357,7 +340,7 @@ const Recommendation = () => {
                   variant="outline"
                   className="w-full border-beige-300 text-beige-700 hover:bg-beige-50"
                 >
-                  Ново изчисление
+                  New Calculation
                 </Button>
               </div>
             ) : (
@@ -366,7 +349,7 @@ const Recommendation = () => {
                   onClick={generateRecommendation}
                   className="bg-beige-600 hover:bg-beige-700 text-white"
                 >
-                  Генерирай AI препоръка
+                  Generate AI Recommendation
                 </Button>
               </div>
             )}
