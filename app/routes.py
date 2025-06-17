@@ -115,17 +115,22 @@ def save_recommendation():
         data = request.get_json()
         logging.debug(f"Received recommendation data: {data}")
         
-        if not data or 'measurements' not in data:
-            return jsonify({'error': 'No data provided or missing measurements'}), 400
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        if 'measurements' not in data:
+            return jsonify({'error': 'Missing measurements data'}), 400
         
         measurements = data['measurements']
+        logging.debug(f"Processing measurements: {measurements}")
 
-        # Предсказваме размер
-        recommended_size = predict_size(measurements)
+        # Get the recommended size from the request data
+        recommended_size = data.get('recommendedSize')
         if not recommended_size:
-            return jsonify({'error': 'Could not predict size'}), 500
+            return jsonify({'error': 'Missing recommended size'}), 400
 
         item_identifier = data.get('itemIdentifier', str(uuid.uuid4()))
+        logging.debug(f"Using item identifier: {item_identifier}")
 
         recommendation = RecommendationHistory(
             user_id=current_user.id,
@@ -135,12 +140,13 @@ def save_recommendation():
             weight=str(measurements.get('weight')),
             chest=str(measurements.get('chest')),
             waist=str(measurements.get('waist')),
-            body_type=measurements.get('bodyType'),
+            body_type=measurements.get('body_type'),
             item_identifier=item_identifier
         )
         
         db.session.add(recommendation)
         db.session.commit()
+        logging.debug(f"Successfully saved recommendation for user {current_user.id}")
 
         return jsonify({
             'message': 'Recommendation saved successfully',

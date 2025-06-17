@@ -30,13 +30,26 @@ def predict():
             return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
 
         # Make prediction
-        prediction, confidence = predict_size(data)
+        prediction, confidence, alternative_size, alternative_confidence = predict_size(data)
         
-        logger.debug(f"Prediction: {prediction}, Confidence: {confidence}")
-        return jsonify({
+        if prediction is None:
+            return jsonify({"error": "Failed to make prediction"}), 500
+            
+        response = {
             "size": prediction,
             "confidence": confidence
-        })
+        }
+        
+        # Add alternative size if confidence is below threshold
+        if alternative_size and alternative_confidence:
+            response["alternative_size"] = alternative_size
+            response["alternative_confidence"] = alternative_confidence
+            response["explanation"] = f"Based on your measurements, we recommend size {prediction} with {confidence:.1%} confidence. However, size {alternative_size} is also a possibility with {alternative_confidence:.1%} confidence."
+        else:
+            response["explanation"] = f"Based on your measurements, we recommend size {prediction} with {confidence:.1%} confidence."
+        
+        logger.debug(f"Prediction response: {response}")
+        return jsonify(response)
 
     except Exception as e:
         error_msg = str(e)

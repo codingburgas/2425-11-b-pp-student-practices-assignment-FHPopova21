@@ -5,14 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, History, Ruler, ChevronDown, ChevronUp } from 'lucide-react';
 import { authService } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import Recommendation from "./Recommendation";
 
 interface RecommendationHistory {
   id: number;
@@ -30,10 +29,11 @@ interface RecommendationHistory {
 }
 
 const Profile = () => {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [recommendationHistory, setRecommendationHistory] = useState<RecommendationHistory[]>([]);
   const { toast } = useToast();
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
+  const navigate = useNavigate();
 
   const toggleExpand = (id: number) => {
     setExpandedItems(prev => 
@@ -44,15 +44,16 @@ const Profile = () => {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/signin');
+      return;
+    }
+
     const fetchHistory = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/user/recommendations', {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setRecommendationHistory(data);
-        }
+        const data = await authService.getUserRecommendations();
+        console.log('Fetched recommendations:', data);
+        setRecommendationHistory(data);
       } catch (error) {
         console.error('Failed to fetch history:', error);
         toast({
@@ -64,7 +65,7 @@ const Profile = () => {
     };
 
     fetchHistory();
-  }, [toast]);
+  }, [isAuthenticated, navigate, toast]);
 
   if (!user) {
     return null;
@@ -105,7 +106,6 @@ const Profile = () => {
         <User className="w-8 h-8 mr-3 text-beige-600" />
         Моят профил
       </h1>
-      <Recommendation />
       <Tabs defaultValue="info" className="space-y-6">
         <TabsList>
           <TabsTrigger value="info">Информация</TabsTrigger>

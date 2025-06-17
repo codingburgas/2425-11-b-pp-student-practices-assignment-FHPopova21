@@ -60,7 +60,7 @@ const Recommendation = () => {
     try {
       if (!user?.bodyMeasurements) throw new Error('Missing body measurements');
       const measurements = user.bodyMeasurements;
-      const data = await fetch(`${API_URL}/recommendations`, {
+      const response = await fetch(`${API_URL}/recommendations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,14 +82,25 @@ const Recommendation = () => {
             garment_width: selectedItem?.measurements.width
           }
         }),
-      }).then(res => res.json());
+      });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save recommendation');
+      }
+
+      const data = await response.json();
       console.log('Recommendation saved:', data);
+      
+      toast({
+        title: "Success",
+        description: "Recommendation saved successfully",
+      });
     } catch (error) {
       console.error('Error saving recommendation:', error);
       toast({
         title: "Error",
-        description: "There was a problem saving the recommendation",
+        description: error instanceof Error ? error.message : "There was a problem saving the recommendation",
         variant: "destructive",
       });
     }
@@ -143,10 +154,6 @@ const Recommendation = () => {
       
       await saveRecommendation(recommendation);
       
-      toast({
-        title: "Size recommendation generated",
-        description: `Size ${data.size} (${Math.round(data.confidence * 100)}% confidence)`,
-      });
     } catch (error) {
       console.error('Error generating recommendation:', error);
       toast({

@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.calibration import CalibratedClassifierCV
 import joblib
 import traceback
 
@@ -46,13 +47,16 @@ def train_model():
         # Split the data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
         
-        # Define parameter grid for GridSearchCV
+        # Define parameter grid for GridSearchCV with focus on probability calibration
         param_grid = {
-            'n_estimators': [200, 300, 400],
-            'max_depth': [10, 20, 30, None],
-            'min_samples_split': [2, 5, 10],
-            'min_samples_leaf': [1, 2, 4],
-            'class_weight': ['balanced', 'balanced_subsample']
+            'n_estimators': [300, 400, 500],
+            'max_depth': [15, 20, 25],
+            'min_samples_split': [2, 4],
+            'min_samples_leaf': [1, 2],
+            'class_weight': ['balanced_subsample'],
+            'max_features': ['sqrt', 'log2'],
+            'bootstrap': [True],
+            'criterion': ['gini', 'entropy']
         }
         
         # Initialize base model
@@ -72,32 +76,45 @@ def train_model():
         grid_search.fit(X_train, y_train)
         
         # Get best model
-        model = grid_search.best_estimator_
+        best_model = grid_search.best_estimator_
+        
+        # Calibrate the model's probabilities
+        calibrated_model = CalibratedClassifierCV(
+            best_model,
+            cv=5,
+            method='isotonic'
+        )
+        calibrated_model.fit(X_train, y_train)
         
         # Log best parameters
         logger.info(f"Best parameters: {grid_search.best_params_}")
         
-        # Perform cross-validation on the best model
-        cv_scores = cross_val_score(model, X_train, y_train, cv=5)
-        logger.info(f"Cross-validation scores: {cv_scores}")
-        logger.info(f"Average CV score: {cv_scores.mean():.2f} (+/- {cv_scores.std() * 2:.2f})")
-        
         # Evaluate the model
-        train_accuracy = model.score(X_train, y_train)
-        test_accuracy = model.score(X_test, y_test)
+        train_accuracy = calibrated_model.score(X_train, y_train)
+        test_accuracy = calibrated_model.score(X_test, y_test)
         logger.info(f"Training accuracy: {train_accuracy:.2f}")
         logger.info(f"Testing accuracy: {test_accuracy:.2f}")
+        
+        # Evaluate probability calibration
+        from sklearn.metrics import brier_score_loss
+        y_pred_proba = calibrated_model.predict_proba(X_test)
+        brier_scores = []
+        for i in range(len(calibrated_model.classes_)):
+            brier_scores.append(brier_score_loss(y_test == calibrated_model.classes_[i], 
+                                               y_pred_proba[:, i]))
+        logger.info(f"Brier scores for each class: {brier_scores}")
+        logger.info(f"Average Brier score: {np.mean(brier_scores):.4f}")
         
         # Log feature importance
         feature_importance = pd.DataFrame({
             'feature': numerical_features + categorical_features,
-            'importance': model.feature_importances_
+            'importance': best_model.feature_importances_
         }).sort_values('importance', ascending=False)
         logger.info(f"Feature importance:\n{feature_importance}")
         
         # Save the model and preprocessing objects
         model_data = {
-            'model': model,
+            'model': calibrated_model,
             'scaler': scaler,
             'label_encoders': label_encoders,
             'numerical_features': numerical_features,

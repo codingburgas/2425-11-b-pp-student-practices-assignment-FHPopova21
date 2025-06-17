@@ -63,15 +63,28 @@ def predict_size(data):
                 raise ValueError(f"No label encoder found for feature {feature}")
         
         # Combine features
-        categorical_data = np.array([categorical_data])  # shape (1, 4)
+        categorical_data = np.array([categorical_data])
         X = np.column_stack([numerical_data, categorical_data])
         
-        # Make prediction
+        # Make prediction with calibrated probabilities
         prediction = model.predict(X)[0]
-        confidence = model.predict_proba(X).max()
+        probabilities = model.predict_proba(X)[0]
+        confidence = probabilities.max()
+        
+        # Get alternative size if confidence is below threshold
+        alternative_size = None
+        alternative_confidence = None
+        if confidence < 0.8:  # 80% confidence threshold
+            # Get second highest probability
+            sorted_probs = np.argsort(probabilities)[::-1]
+            if len(sorted_probs) > 1:
+                alternative_size = model.classes_[sorted_probs[1]]
+                alternative_confidence = probabilities[sorted_probs[1]]
         
         logger.debug(f"Prediction: {prediction}, Confidence: {confidence}")
-        return prediction, confidence
+        logger.debug(f"Alternative size: {alternative_size}, Confidence: {alternative_confidence}")
+        
+        return prediction, confidence, alternative_size, alternative_confidence
         
     except Exception as e:
         logger.error(f"Error in prediction: {str(e)}")
@@ -83,9 +96,11 @@ def predict_size_with_confidence(measurements: dict):
         logging.debug("Received measurements for prediction: %s", measurements)
         measurements = translate_to_bg(measurements)
         logging.debug("Translated measurements for prediction: %s", measurements)
+        
         features = []
         num_values = []
         cat_values = []
+        
         # Prepare numerical features
         for feature in numerical_features:
             if feature in measurements:
@@ -94,8 +109,10 @@ def predict_size_with_confidence(measurements: dict):
             else:
                 logging.error("Missing required numerical feature: %s", feature)
                 logging.error("Available features: %s", list(measurements.keys()))
-                return None, None
+                return None, None, None, None
+                
         num_values_scaled = scaler.transform([num_values])[0]
+        
         # Prepare categorical features
         for feature in categorical_features:
             if feature in measurements:
@@ -107,25 +124,40 @@ def predict_size_with_confidence(measurements: dict):
                     except ValueError as e:
                         logging.error("Error encoding %s value '%s': %s", feature, value, str(e))
                         logging.error("Available categories: %s", label_encoders[feature].classes_)
-                        return None, None
+                        return None, None, None, None
                 else:
                     logging.error("No label encoder for categorical feature: %s", feature)
-                    return None, None
+                    return None, None, None, None
             else:
                 logging.error("Missing required categorical feature: %s", feature)
                 logging.error("Available features: %s", list(measurements.keys()))
-                return None, None
+                return None, None, None, None
+                
         features = list(num_values_scaled) + cat_values
         features_array = np.array([features])
-        prediction = model.predict(features_array)
-        proba = model.predict_proba(features_array)
-        predicted_class = prediction[0]
-        class_index = list(model.classes_).index(predicted_class)
-        confidence = proba[0][class_index]
-        logging.info("Prediction result: %s with confidence %.3f", predicted_class, confidence)
-        return predicted_class, confidence
+        
+        # Get predictions with calibrated probabilities
+        prediction = model.predict(features_array)[0]
+        probabilities = model.predict_proba(features_array)[0]
+        confidence = probabilities.max()
+        
+        # Get alternative size if confidence is below threshold
+        alternative_size = None
+        alternative_confidence = None
+        if confidence < 0.8:  # 80% confidence threshold
+            sorted_probs = np.argsort(probabilities)[::-1]
+            if len(sorted_probs) > 1:
+                alternative_size = model.classes_[sorted_probs[1]]
+                alternative_confidence = probabilities[sorted_probs[1]]
+        
+        logging.info("Prediction result: %s with confidence %.3f", prediction, confidence)
+        if alternative_size:
+            logging.info("Alternative size: %s with confidence %.3f", alternative_size, alternative_confidence)
+            
+        return prediction, confidence, alternative_size, alternative_confidence
+        
     except Exception as e:
         logging.error("Prediction error: %s", str(e))
         logging.error("Traceback: %s", traceback.format_exc())
-        return None, None
+        return None, None, None, None
 
