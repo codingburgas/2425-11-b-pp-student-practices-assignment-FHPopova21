@@ -3,7 +3,7 @@
   <img src="Logo/smartfit-logo.png" alt="SmartFit Logo" width="200"/>
 </p>
 <p align="center">
-  <em>Иновативен проект за интелигентно препоръчване на размери при онлайн пазаруване</em>
+  <em>Innovative project for intelligent size recommendation in online shopping</em>
 </p>
 <br>
 <p align="center">
@@ -12,58 +12,75 @@
   <img alt="Last commit" src="https://img.shields.io/github/last-commit/YourUsername/SmartFit?style=flat-square">
 </p>
 
-## 🔍 За какво става въпрос?
+## 🔍 What is it about?
 
-SmartFit е интелигентна система, която използва машинно обучение, за да предложи най-подходящия размер дреха на база:
+SmartFit is an intelligent system that uses machine learning to suggest the most suitable clothing size based on:
 
-- телосложение и мерки на потребителя
-- конкретните характеристики на дрехата (ширина, материя, размер)
+- user's body measurements and physique
+- specific clothing characteristics (width, fabric, size)
 
-🎯 Край на върнатите дрехи. Здравей, точен размер!
+🎯 No more returns. Hello, perfect fit!
 
-## 🧠 Как работи?
+## 🧠 How does it work?
 
-1. Потребителят въвежда своите мерки
-2. Избира дреха от каталога
-3. Системата обработва данните с ML модел
-4. Връща препоръка:
+1. User inputs their measurements  
+2. Chooses a clothing item from the catalog  
+3. The system processes the data with an ML model  
+4. Returns a recommendation:
 
-✅ Препоръчителен размер: M  
-⚠️ Ако предпочиташ по-свободни дрехи – L
+✅ Recommended size: M  
+⚠️ If you prefer looser clothes – L
 
-## 🛠️ Технологии
+## 🛠️ Technologies
 
-| Категория    | Технологии                     |
-| ------------ | ------------------------------ |
-| Backend      | Python + Flask                 |
-| ML модел     | Random Forest / Feedforward NN |
-| База данни   | SQLite                         |
-| Frontend     | HTML / CSS / WTForms / React   |
-| Аутентикация | Flask-Login                    |
+| Category    | Technologies                  |
+| ----------- | -----------------------------|
+| Backend     | Python + Flask               |
+| ML Model    | Random Forest                |
+| Database    | SQLite                      |
+| Frontend    | HTML / CSS / WTForms / React |
+| Authentication | Flask-Login                |
 
-## 🎨 Визия и роля-базирана функционалност
+## 🎨 Design and role-based functionality
 
-🔑 **Роли в системата:**
+🔑 **Roles in the system:**
 
-- 👤 Потребител – въвежда мерки, получава препоръка
-- 🛠️ Администратор – управлява данни за дрехи и потребители
-- 🧵 Търговец _(опция)_ – добавя нови модели дрехи
+- 👤 User – inputs measurements, receives recommendations  
+- 🧵 Seller – adds new clothing models  
 
-## 📸 Преглед на функционалност
+## 📸 Functionality preview
 
 <p align="center">
   <img src="Screenshots/size-recommendation.png" alt="Size Recommendation Example" width="500"/>
 </p>
 
-## 💻 Стартиране на проекта
+## 💻 Running the project
 
 ```bash
-# Клонирай проекта
+# Clone the repo
 git clone https://github.com/YourUsername/SmartFit.git
 
-# Инсталирай зависимостите
+# Install dependencies
 pip install -r requirements.txt
 
-# Стартирай приложението
+# Run the app
 python app.py
 ```
+
+## 📂 Documents
+
+- 📄 [Документация](Documentation/SmartFit_Documentation.pdf)  
+- 🖼️ [Презентация](Documentation/SmartFit_Presentation.pptx)  
+- 📈 [ER Диаграма](Documentation/SmartFit_ER_Diagram.png)  
+
+---
+
+## ✨ Author
+
+👩 **Filipa Popova** — Software developer, UX enthusiast, passionate about real solutions to real problems.
+
+---
+
+## 📬 Contact Me
+- 📧 fhpopova21@codingburgas.bg 
+- 🌐 [Портфолио уебсайт](https://yourportfolio.com)
