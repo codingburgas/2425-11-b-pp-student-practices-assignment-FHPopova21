@@ -13,7 +13,7 @@ const Index = () => {
       case 'user':
         return <Navigate to="/dashboard" replace />;
       case 'seller':
-        return <Navigate to="/merchant" replace />;
+        return <Navigate to="/seller/profile" replace />;
       case 'admin':
         return <Navigate to="/admin" replace />;
       default:

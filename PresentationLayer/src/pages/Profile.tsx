@@ -12,6 +12,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import Recommendation from "./Recommendation";
 
 interface RecommendationHistory {
   id: number;
@@ -104,7 +105,7 @@ const Profile = () => {
         <User className="w-8 h-8 mr-3 text-beige-600" />
         Моят профил
       </h1>
-
+      <Recommendation />
       <Tabs defaultValue="info" className="space-y-6">
         <TabsList>
           <TabsTrigger value="info">Информация</TabsTrigger>

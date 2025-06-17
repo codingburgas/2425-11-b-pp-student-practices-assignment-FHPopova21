@@ -26,7 +26,15 @@ const SignIn = () => {
         title: "Успешен вход",
         description: "Добре дошли в SmartFit!",
       });
-      navigate('/dashboard');
+      // Role-based redirect
+      const user = useAuthStore.getState().user;
+      if (user?.role === 'seller') {
+        navigate('/seller', { replace: true });
+      } else if (user?.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (error) {
       toast({
         title: "Грешка при вход",

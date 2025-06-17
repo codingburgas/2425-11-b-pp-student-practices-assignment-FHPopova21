@@ -13,9 +13,9 @@ import Measurements from "./pages/Measurements";
 import Recommendation from "./pages/Recommendation";
 import ClothingListing from "./pages/ClothingListing";
 import NotFound from "./pages/NotFound";
-import CreateListing from "./pages/CreateListing";
 import SellerListings from "./pages/SellerListings";
 import SellerDashboard from "./pages/SellerDashboard";
+import MerchantProfile from "./pages/MerchantProfile";
 
 const queryClient = new QueryClient();
 
@@ -38,7 +38,7 @@ const App = () => (
             <Route path="/clothing" element={<ClothingListing />} />
             <Route path="/seller" element={<SellerDashboard />} />
             <Route path="/seller/listings" element={<SellerListings />} />
-            <Route path="/seller/listings/new" element={<CreateListing />} />
+            <Route path="/seller/profile" element={<MerchantProfile />} />
             <Route path="/admin" element={<div className="p-6 text-center">Admin Dashboard - Coming Soon</div>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
