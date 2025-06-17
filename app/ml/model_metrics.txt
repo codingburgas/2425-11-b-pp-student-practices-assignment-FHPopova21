@@ -1,0 +1,38 @@
+🎯 Model Evaluation Metrics
+==================================================
+
+📊 Overall Accuracy: 99.57%
+
+📋 Classification Report:
+              precision    recall  f1-score   support
+
+           L       1.00      1.00      1.00       140
+           M       1.00      1.00      1.00       140
+           S       0.99      0.99      0.99       140
+          XL       1.00      1.00      1.00       140
+          XS       0.99      0.99      0.99       140
+
+    accuracy                           1.00       700
+   macro avg       1.00      1.00      1.00       700
+weighted avg       1.00      1.00      1.00       700
+
+📈 Confusion Matrix:
+[[140   0   0   0   0]
+ [  0 140   0   0   0]
+ [  0   0 139   0   1]
+ [  0   0   0 140   0]
+ [  0   0   2   0 138]]
+
+🏷️ Class Labels:
+['L', 'M', 'S', 'XL', 'XS']
+
+📊 Feature Importance:
+     feature  importance
+       chest    0.518857
+      weight    0.072571
+      height    0.043143
+       waist    0.040714
+    material    0.001143
+   body_type    0.000857
+      gender    0.000000
+garment_type    0.000000

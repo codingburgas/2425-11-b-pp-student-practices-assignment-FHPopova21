@@ -10,17 +10,17 @@ test_data = {
     "weight": 70,
     "waist": 85,
     "chest": 95,
-    "clothing_width": 50,
+    "garment_width": 50,
     "gender": "male",
     "body_type": "medium",
     "material": "elastic",
-    "clothing_type": "shirt"
+    "garment_type": "shirt"
 }
 
 # Make request to the prediction endpoint
 try:
     response = requests.post(
-        "http://localhost:5001/api/predict-size",
+        "http://localhost:5001/predict",
         json=test_data,
         headers={
             "Content-Type": "application/json",

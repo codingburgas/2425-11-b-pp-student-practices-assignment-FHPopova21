@@ -111,6 +111,24 @@ def train_model():
             'importance': best_model.feature_importances_
         }).sort_values('importance', ascending=False)
         logger.info(f"Feature importance:\n{feature_importance}")
+
+        # Confusion matrix
+        from sklearn.metrics import confusion_matrix
+        y_test_pred = calibrated_model.predict(X_test)
+        cm = confusion_matrix(y_test, y_test_pred, labels=calibrated_model.classes_)
+
+        # Save evaluation results to a file
+        eval_path = os.path.join(os.path.dirname(__file__), 'model_evaluation.txt')
+        with open(eval_path, 'w') as f:
+            f.write(f"Training accuracy: {train_accuracy:.4f}\n")
+            f.write(f"Testing accuracy: {test_accuracy:.4f}\n")
+            f.write(f"Brier scores for each class: {brier_scores}\n")
+            f.write(f"Average Brier score: {np.mean(brier_scores):.4f}\n\n")
+            f.write("Confusion matrix (rows: true, cols: pred):\n")
+            f.write(str(cm) + '\n')
+            f.write(f"Class labels: {list(calibrated_model.classes_)}\n\n")
+            f.write("Feature importance:\n")
+            f.write(feature_importance.to_string(index=False))
         
         # Save the model and preprocessing objects
         model_data = {

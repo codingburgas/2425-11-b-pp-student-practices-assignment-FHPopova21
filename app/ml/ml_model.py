@@ -43,21 +43,33 @@ def translate_to_bg(data):
 
 def predict_size(data):
     try:
+        # Normalize field names
+        field_mapping = {
+            'clothing_width': 'garment_width',
+            'clothing_type': 'garment_type'
+        }
+        
+        normalized_data = {}
+        for key, value in data.items():
+            normalized_key = field_mapping.get(key, key)
+            normalized_data[normalized_key] = value
+            
         # Prepare numerical features
-        numerical_data = np.array([[float(data[feature]) for feature in numerical_features]])
+        numerical_data = np.array([[float(normalized_data[feature]) for feature in numerical_features]])
         numerical_data = scaler.transform(numerical_data)
         
         # Prepare categorical features
         categorical_data = []
         for feature in categorical_features:
-            value = data[feature]
+            value = normalized_data[feature]
             if feature in label_encoders:
                 try:
                     encoded_value = label_encoders[feature].transform([value])[0]
                     categorical_data.append(encoded_value)
-                except ValueError:
+                except ValueError as e:
                     logger.error(f"Unseen value '{value}' for feature {feature}")
-                    raise ValueError(f"Unseen value '{value}' for feature {feature}")
+                    logger.error(f"Available categories: {label_encoders[feature].classes_}")
+                    raise ValueError(f"Unseen value '{value}' for feature {feature}. Available categories: {label_encoders[feature].classes_}")
             else:
                 logger.error(f"No label encoder found for feature {feature}")
                 raise ValueError(f"No label encoder found for feature {feature}")

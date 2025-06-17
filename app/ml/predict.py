@@ -20,17 +20,28 @@ def predict():
         data = request.get_json()
         logger.debug(f"Received data: {data}")
 
+        # Normalize field names
+        field_mapping = {
+            'clothing_width': 'garment_width',
+            'clothing_type': 'garment_type'
+        }
+        
+        normalized_data = {}
+        for key, value in data.items():
+            normalized_key = field_mapping.get(key, key)
+            normalized_data[normalized_key] = value
+
         # Validate required fields
         required_fields = ['height', 'weight', 'waist', 'chest', 'gender', 
                          'body_type', 'material', 'garment_type', 'garment_width']
         
-        missing_fields = [field for field in required_fields if field not in data]
+        missing_fields = [field for field in required_fields if field not in normalized_data]
         if missing_fields:
             logger.error(f"Missing required fields: {missing_fields}")
             return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
 
         # Make prediction
-        prediction, confidence, alternative_size, alternative_confidence = predict_size(data)
+        prediction, confidence, alternative_size, alternative_confidence = predict_size(normalized_data)
         
         if prediction is None:
             return jsonify({"error": "Failed to make prediction"}), 500
@@ -51,6 +62,10 @@ def predict():
         logger.debug(f"Prediction response: {response}")
         return jsonify(response)
 
+    except ValueError as e:
+        error_msg = str(e)
+        logger.error(f"Validation error: {error_msg}")
+        return jsonify({"error": error_msg}), 400
     except Exception as e:
         error_msg = str(e)
         logger.error(f"Prediction failed: {error_msg}")

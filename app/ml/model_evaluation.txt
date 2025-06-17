@@ -1,0 +1,23 @@
+Training accuracy: 0.9982
+Testing accuracy: 0.9857
+Brier scores for each class: [0.0018983744958376348, 0.0017644997619627547, 0.011339193353979976, 0.00017052333424544586, 0.011302544753609412]
+Average Brier score: 0.0053
+
+Confusion matrix (rows: true, cols: pred):
+[[28  0  0  0  0]
+ [ 0 28  0  0  0]
+ [ 0  0 27  0  1]
+ [ 0  0  0 28  0]
+ [ 0  0  1  0 27]]
+Class labels: ['L', 'M', 'S', 'XL', 'XS']
+
+Feature importance:
+     feature  importance
+       chest    0.438673
+      weight    0.233674
+       waist    0.183695
+      height    0.131364
+   body_type    0.004425
+    material    0.003440
+      gender    0.002414
+garment_type    0.002314
