@@ -13,21 +13,21 @@ const SellerDashboard = () => {
 
   // Filter items by current seller
   const sellerItems = mockClothingItems.filter(item => 
-    item.sellerName === user?.name || item.sellerId === String(user?.id)
+    item.merchantName === user?.name || item.merchantId === String(user?.id)
   );
 
   // Mock notifications
   const notifications = [
-    { id: 1, type: 'view', message: 'Нов преглед на "Класическа бизнес риза"', time: '5 мин' },
-    { id: 2, type: 'message', message: 'Ново съобщение от клиент', time: '1 час' },
-    { id: 3, type: 'rating', message: 'Нова оценка: 5 звезди', time: '2 часа' },
+    { id: 1, type: 'view', message: 'New view on "Classic Business Shirt"', time: '5 min' },
+    { id: 2, type: 'message', message: 'New message from customer', time: '1 hour' },
+    { id: 3, type: 'rating', message: 'New rating: 5 stars', time: '2 hours' },
   ];
 
   // Mock recent activity
   const recentActivity = [
-    { id: 1, type: 'edit', item: 'Спортна тениска', time: 'днес' },
-    { id: 2, type: 'view', item: 'Дамска рокля', time: 'вчера' },
-    { id: 3, type: 'new', item: 'Зимно яке', time: 'преди 2 дни' },
+    { id: 1, type: 'edit', item: 'Sports T-shirt', time: 'today' },
+    { id: 2, type: 'view', item: 'Women\'s Dress', time: 'yesterday' },
+    { id: 3, type: 'new', item: 'Winter Jacket', time: '2 days ago' },
   ];
 
   return (
@@ -58,31 +58,21 @@ const SellerDashboard = () => {
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="glass-card">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-beige-700">Общо обяви</CardTitle>
+                <CardTitle className="text-lg text-beige-700">Total Listings</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-gray-800">{sellerItems.length}</div>
-                <p className="text-sm text-gray-600">активни обяви</p>
+                <p className="text-sm text-gray-600">active listings</p>
               </CardContent>
             </Card>
 
             <Card className="glass-card">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-beige-700">Общо прегледи</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-gray-800">{sellerItems.reduce((sum, item) => sum + (item.views || 0), 0)}</div>
-                <p className="text-sm text-gray-600">общо прегледи</p>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-card">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-beige-700">AI препоръки</CardTitle>
+                <CardTitle className="text-lg text-beige-700">AI Recommendations</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-green-600">47</div>
-                <p className="text-sm text-gray-600">този месец</p>
+                <p className="text-sm text-gray-600">this month</p>
               </CardContent>
             </Card>
           </div>
@@ -91,19 +81,19 @@ const SellerDashboard = () => {
           <div className="grid md:grid-cols-2 gap-6">
             <Card className="glass-card">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-beige-700">Топ обява</CardTitle>
+                <CardTitle className="text-lg text-beige-700">Top Listing</CardTitle>
               </CardHeader>
               <CardContent>
                 {sellerItems.length > 0 ? (
                   <div>
                     <div className="font-semibold text-xl mb-1">
-                      {sellerItems.reduce((top, item) => item.views > top.views ? item : top, sellerItems[0]).name}
+                      {sellerItems.reduce((top, item) => item.price > top.price ? item : top, sellerItems[0]).name}
                     </div>
                     <div className="text-gray-600 text-sm mb-1">
-                      Общо прегледи: {sellerItems.reduce((top, item) => item.views > top.views ? item : top, sellerItems[0]).views}
+                      Price: {sellerItems.reduce((top, item) => item.price > top.price ? item : top, sellerItems[0]).price}
                     </div>
                     <div className="text-gray-500 text-xs">
-                      Размер: {sellerItems.reduce((top, item) => item.views > top.views ? item : top, sellerItems[0]).size}
+                      Size: {sellerItems.reduce((top, item) => item.price > top.price ? item : top, sellerItems[0]).size}
                     </div>
                   </div>
                 ) : (
@@ -114,11 +104,11 @@ const SellerDashboard = () => {
 
             <Card className="glass-card">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-beige-700">Прегледи (последни 7 дни)</CardTitle>
+                <CardTitle className="text-lg text-beige-700">Views (last 7 days)</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold text-blue-600">{Math.floor(Math.random() * 50) + 20}</div>
-                <p className="text-sm text-gray-600">(примерни данни)</p>
+                <p className="text-sm text-gray-600">(sample data)</p>
               </CardContent>
             </Card>
           </div>
@@ -127,7 +117,7 @@ const SellerDashboard = () => {
           <div className="grid md:grid-cols-2 gap-6">
             <Card className="glass-card">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-beige-700">Бързи действия</CardTitle>
+                <CardTitle className="text-lg text-beige-700">Quick Stats</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button 
@@ -155,15 +145,15 @@ const SellerDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Среден рейтинг</span>
+                    <span className="text-sm text-gray-600">Average Rating</span>
                     <span className="text-lg font-semibold text-yellow-500">4.8★</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Активни обяви</span>
+                    <span className="text-sm text-gray-600">Active Listings</span>
                     <span className="text-lg font-semibold text-green-600">{sellerItems.length}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Нови съобщения</span>
+                    <span className="text-sm text-gray-600">New Messages</span>
                     <span className="text-lg font-semibold text-blue-600">3</span>
                   </div>
                 </div>

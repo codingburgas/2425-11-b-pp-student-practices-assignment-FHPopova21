@@ -87,11 +87,11 @@ const Index = () => {
                 <div className="w-16 h-16 bg-beige-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Settings className="w-8 h-8 text-beige-600" />
                 </div>
-                <CardTitle>3. Получете AI препоръка</CardTitle>
+                <CardTitle>3. Get an AI Recommendation</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Нашият AI алгоритъм анализира данните и препоръчва най-подходящия размер
+                  Our AI algorithm analyzes your data and recommends the most suitable size
                 </p>
               </CardContent>
             </Card>
@@ -104,16 +104,16 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div className="animate-fade-in">
-              <h3 className="text-4xl font-bold gradient-text mb-2">95%</h3>
-              <p className="text-gray-600">Точност на препоръките</p>
+              <h3 className="text-4xl font-bold gradient-text mb-2">99%</h3>
+              <p className="text-gray-600">Recommendation Confidence</p>
             </div>
             <div className="animate-fade-in">
               <h3 className="text-4xl font-bold gradient-text mb-2">1000+</h3>
-              <p className="text-gray-600">Доволни потребители</p>
+              <p className="text-gray-600">Happy Users</p>
             </div>
             <div className="animate-fade-in">
               <h3 className="text-4xl font-bold gradient-text mb-2">500+</h3>
-              <p className="text-gray-600">Обяви за дрехи</p>
+              <p className="text-gray-600">Clothing Listings</p>
             </div>
           </div>
         </div>
