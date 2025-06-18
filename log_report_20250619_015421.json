@@ -1,0 +1,24 @@
+{
+  "date": "2025-06-19",
+  "user_actions": {
+    "total_actions": 0,
+    "unique_users": 0,
+    "action_breakdown": {},
+    "most_common_action": null
+  },
+  "ai_recommendations": {
+    "total_recommendations": 0,
+    "unique_users": 0,
+    "unique_clothing_items": 0,
+    "size_distribution": {},
+    "most_recommended_size": null
+  },
+  "errors": {
+    "total_errors": 0,
+    "error_types": {},
+    "most_common_error": null
+  },
+  "performance": {
+    "error": "Performance log not found"
+  }
+}

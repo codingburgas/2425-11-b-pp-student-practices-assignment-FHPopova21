@@ -6,11 +6,13 @@ from flask_migrate import Migrate
 from app.models import db, User
 from app.routes import auth
 from app.ml.predict import predict_bp
+from app.logging_config import setup_logging, log_user_action, log_error
 import os
-import logging
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+
+# Настройване на логването
+logger = setup_logging(app)
 
 # Configure CORS
 CORS(app, 
@@ -35,11 +37,18 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        user = User.query.get(int(user_id))
+        logger.debug(f"Loaded user: {user.username if user else 'None'}")
+        return user
+    except Exception as e:
+        log_error(e, f"Error loading user with ID: {user_id}")
+        return None
 
 # Root route for API information
 @app.route('/')
 def index():
+    logger.info("API root endpoint accessed")
     return jsonify({
         'name': 'SmartFit API',
         'version': '1.0',
@@ -55,12 +64,16 @@ def index():
 # Register blueprints
 app.register_blueprint(auth)
 app.register_blueprint(predict_bp)
-logging.debug("Registered auth blueprint with routes: %s", [str(rule) for rule in app.url_map.iter_rules()])
+logger.info("Registered blueprints: auth and predict")
 
 # Create database tables
 with app.app_context():
-    db.create_all()
-    logging.debug("Created database tables")
+    try:
+        db.create_all()
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        log_error(e, "Error creating database tables")
 
 if __name__ == '__main__':
+    logger.info("Starting SmartFit application on port 5001")
     app.run(debug=True, port=5001)
