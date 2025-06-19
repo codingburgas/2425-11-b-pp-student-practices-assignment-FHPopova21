@@ -1,6 +1,6 @@
 <h1 align="center">🧥 SmartFit</h1>
 <p align="center">
-  <img src="Logo/smartfit-logo.png" alt="SmartFit Logo" width="200"/>
+  <img src="./Images/logo.PNG" alt="SmartFit Logo" width="200"/>
 </p>
 <p align="center">
   <em>Innovative project for intelligent size recommendation in online shopping</em>
@@ -23,9 +23,9 @@ SmartFit is an intelligent system that uses machine learning to suggest the most
 
 ## 🧠 How does it work?
 
-1. User inputs their measurements  
-2. Chooses a clothing item from the catalog  
-3. The system processes the data with an ML model  
+1. User inputs their measurements
+2. Chooses a clothing item from the catalog
+3. The system processes the data with an ML model
 4. Returns a recommendation:
 
 ✅ Recommended size: M  
@@ -33,25 +33,25 @@ SmartFit is an intelligent system that uses machine learning to suggest the most
 
 ## 🛠️ Technologies
 
-| Category    | Technologies                  |
-| ----------- | -----------------------------|
-| Backend     | Python + Flask               |
-| ML Model    | Random Forest                |
-| Database    | SQLite                      |
-| Frontend    | HTML / CSS / WTForms / React |
-| Authentication | Flask-Login                |
+| Category       | Technologies                 |
+| -------------- | ---------------------------- |
+| Backend        | Python + Flask               |
+| ML Model       | Random Forest                |
+| Database       | SQLite                       |
+| Frontend       | HTML / CSS / WTForms / React |
+| Authentication | Flask-Login                  |
 
 ## 🎨 Design and role-based functionality
 
 🔑 **Roles in the system:**
 
-- 👤 User – inputs measurements, receives recommendations  
-- 🧵 Seller – adds new clothing models  
+- 👤 User – inputs measurements, receives recommendations
+- 🧵 Seller – adds new clothing models
 
 ## 📸 Functionality preview
 
 <p align="center">
-  <img src="Screenshots/size-recommendation.png" alt="Size Recommendation Example" width="500"/>
+  <img src="./Images/size_page.jpeg" alt="Size Recommendation Example" width="500"/>
 </p>
 
 ## 💻 Running the project
@@ -69,9 +69,7 @@ python app.py
 
 ## 📂 Documents
 
-- 📄 [Документация](Documentation/SmartFit_Documentation.pdf)  
-- 🖼️ [Презентация](Documentation/SmartFit_Presentation.pptx)  
-- 📈 [ER Диаграма](Documentation/SmartFit_ER_Diagram.png)  
+- 📄 <a href = "https://codingburgas-my.sharepoint.com/:w:/g/personal/fhpopova21_codingburgas_bg/EZhCU6_aEY1OuL1QiG-AsNEBeLoLGYUOXYVc5c44Xzngzg?e=qOp5ub">[Документация]</a>
 
 ---
 
@@ -82,5 +80,6 @@ python app.py
 ---
 
 ## 📬 Contact Me
-- 📧 fhpopova21@codingburgas.bg 
+
+- 📧 fhpopova21@codingburgas.bg
 - 🌐 [Портфолио уебсайт](https://yourportfolio.com)
