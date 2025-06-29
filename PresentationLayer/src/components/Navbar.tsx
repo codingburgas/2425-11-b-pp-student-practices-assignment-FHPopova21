@@ -45,9 +45,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="#" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-beige-400 to-beige-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SF</span>
-            </div>
+            <img src="/logo2.png" alt="SmartFit Logo" className="w-8 h-8 object-contain rounded-xl" />
             <span className="text-xl font-bold gradient-text">SmartFit</span>
           </Link>
 
