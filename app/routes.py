@@ -294,8 +294,28 @@ def save_measurements():
 def get_all_users():
     try:
         users = User.query.all()
+        users_with_stats = []
+        
+        for user in users:
+            # Get recommendation count
+            recommendation_count = RecommendationHistory.query.filter_by(user_id=user.id).count()
+            
+            # Get comment count
+            comment_count = Comment.query.filter_by(user_id=user.id).count()
+            
+            # Get clothing count (for sellers)
+            clothing_count = Clothing.query.filter_by(seller_id=user.id).count()
+            
+            user_data = user.to_dict()
+            user_data.update({
+                'recommendation_count': recommendation_count,
+                'comment_count': comment_count,
+                'clothing_count': clothing_count
+            })
+            users_with_stats.append(user_data)
+        
         log_user_action("admin_get_users", current_user.id, f"Count: {len(users)}")
-        return jsonify([user.to_dict() for user in users]), 200
+        return jsonify(users_with_stats), 200
     except Exception as e:
         log_error(e, "Admin get users error")
         return jsonify({'error': str(e)}), 500

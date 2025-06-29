@@ -31,8 +31,6 @@ const Navbar = () => {
       case 'admin':
         return [
           { name: 'Админ панел', path: '/admin', icon: Settings },
-          { name: 'Потребители', path: '/admin/users', icon: User },
-          { name: 'Обяви', path: '/admin/listings', icon: ShoppingBag },
         ];
       default:
         return [];

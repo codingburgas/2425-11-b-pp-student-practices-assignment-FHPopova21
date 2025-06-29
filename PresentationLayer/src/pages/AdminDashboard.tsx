@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Package, MessageSquare, TrendingUp, Trash2, Eye } from 'lucide-react';
+import { Users, Package, MessageSquare, TrendingUp, Trash2, Eye, Star, MessageCircle, ShoppingBag } from 'lucide-react';
 
 interface DashboardData {
   counts: {
@@ -26,6 +28,9 @@ interface User {
   username: string;
   email: string;
   role: string;
+  recommendation_count: number;
+  comment_count: number;
+  clothing_count: number;
 }
 
 interface Clothing {
@@ -64,6 +69,8 @@ const AdminDashboard = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<string>('username');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -222,6 +229,30 @@ const AdminDashboard = () => {
     return labels[type as keyof typeof labels] || type;
   };
 
+  const getSortedUsers = () => {
+    return [...users].sort((a, b) => {
+      let aValue: any = a[sortBy as keyof User];
+      let bValue: any = b[sortBy as keyof User];
+      
+      // Handle string comparison
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  };
+
+  const isActiveUser = (user: User) => {
+    const totalActivity = user.recommendation_count + user.comment_count + user.clothing_count;
+    return totalActivity >= 3; // Consider active if they have 3+ total activities
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -241,49 +272,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Dashboard Stats */}
-      {dashboardData && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Потребители</CardTitle>
-              <Users className="h-4 w-4 text-beige-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.counts.users}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Дрехи</CardTitle>
-              <Package className="h-4 w-4 text-beige-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.counts.clothes}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Коментари</CardTitle>
-              <MessageSquare className="h-4 w-4 text-beige-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.counts.comments}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Препоръки</CardTitle>
-              <TrendingUp className="h-4 w-4 text-beige-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{dashboardData.counts.recommendations}</div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Removed summary cards as requested */}
 
       {/* Tabs */}
       <Tabs defaultValue="users" className="space-y-6">
@@ -295,11 +284,98 @@ const AdminDashboard = () => {
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
+          {/* User Statistics Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card className="glass-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Общо Потребители</CardTitle>
+                <Users className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{users.length}</div>
+                <p className="text-xs text-gray-600">
+                  {users.filter(u => u.role === 'admin').length} админи, {users.filter(u => u.role === 'seller').length} търговци, {users.filter(u => u.role === 'user').length} потребители
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Общо Препоръки</CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {users.reduce((sum, user) => sum + user.recommendation_count, 0)}
+                </div>
+                <p className="text-xs text-gray-600">
+                  Средно {Math.round(users.reduce((sum, user) => sum + user.recommendation_count, 0) / users.length)} на потребител
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Общо Коментари</CardTitle>
+                <MessageCircle className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {users.reduce((sum, user) => sum + user.comment_count, 0)}
+                </div>
+                <p className="text-xs text-gray-600">
+                  Средно {Math.round(users.reduce((sum, user) => sum + user.comment_count, 0) / users.length)} на потребител
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Общо Дрехи</CardTitle>
+                <ShoppingBag className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {users.reduce((sum, user) => sum + user.clothing_count, 0)}
+                </div>
+                <p className="text-xs text-gray-600">
+                  От {users.filter(u => u.clothing_count > 0).length} търговци
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>Всички Потребители</CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="flex items-center justify-between space-x-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium">Сортиране по:</span>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="username">Потребителско име</SelectItem>
+                      <SelectItem value="role">Роля</SelectItem>
+                      <SelectItem value="recommendation_count">Препоръки</SelectItem>
+                      <SelectItem value="comment_count">Коментари</SelectItem>
+                      <SelectItem value="clothing_count">Дрехи</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="asc">Възходящо</SelectItem>
+                      <SelectItem value="desc">Низходящо</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -307,16 +383,70 @@ const AdminDashboard = () => {
                     <TableHead>Потребителско име</TableHead>
                     <TableHead>Имейл</TableHead>
                     <TableHead>Роля</TableHead>
+                    <TableHead>Препоръки</TableHead>
+                    <TableHead>Коментари</TableHead>
+                    <TableHead>Дрехи</TableHead>
                     <TableHead>Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((user) => (
+                  {getSortedUsers().map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>{user.id}</TableCell>
-                      <TableCell>{user.username}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <span>{user.username}</span>
+                          {isActiveUser(user) && (
+                            <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
+                              Активен
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                                {user.recommendation_count}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>AI препоръки за размер</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant="outline" className="bg-green-50 text-green-700">
+                                {user.comment_count}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Коментари и рейтинги</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                      <TableCell>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                                {user.clothing_count}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Дрехи за продажба</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
                       <TableCell>
                         {user.role !== 'admin' && (
                           <Button
