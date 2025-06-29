@@ -43,6 +43,9 @@ const Recommendation = () => {
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
   const [recommendation, setRecommendation] = useState<SizeRecommendation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [commentAdded, setCommentAdded] = useState(false);
 
   useEffect(() => {
     if (location.state?.selectedItem) {
@@ -69,7 +72,7 @@ const Recommendation = () => {
         body: JSON.stringify({
           clothingType: selectedItem?.type,
           recommendedSize: result.recommendedSize,
-          itemIdentifier: selectedItem?.id,
+          itemIdentifier: String(selectedItem?.id),
           measurements: {
             height: measurements.height.toString(),
             weight: measurements.weight.toString(),
@@ -171,6 +174,32 @@ const Recommendation = () => {
     if (item) {
       setSelectedItem(item);
       setRecommendation(null);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedItem) return;
+    setCommentLoading(true);
+    try {
+      const res = await fetch(`/api/clothing/${selectedItem.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content: commentText }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCommentText('');
+        setCommentAdded(true);
+        toast({ title: 'Успех', description: data.message });
+      } else {
+        toast({ title: 'Грешка', description: data.error ? String(data.error) : 'Възникна грешка', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Грешка', description: 'Възникна грешка', variant: 'destructive' });
+    } finally {
+      setCommentLoading(false);
     }
   };
 
@@ -363,6 +392,26 @@ const Recommendation = () => {
           </CardContent>
         </Card>
       </div>
+
+      {recommendation && selectedItem && !commentAdded && (
+        <form onSubmit={handleAddComment} className="space-y-2 mt-6 max-w-lg">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Оставете коментар за тази дреха:</label>
+          <textarea
+            className="w-full border rounded p-2"
+            value={commentText}
+            onChange={e => setCommentText(e.target.value)}
+            placeholder="Вашият коментар..."
+            required
+            rows={3}
+          />
+          <Button type="submit" disabled={commentLoading || !commentText.trim()}>
+            {commentLoading ? 'Изпращане...' : 'Добави коментар'}
+          </Button>
+        </form>
+      )}
+      {commentAdded && (
+        <div className="mt-4 text-green-600 font-medium">Благодарим за вашия коментар!</div>
+      )}
     </div>
   );
 };

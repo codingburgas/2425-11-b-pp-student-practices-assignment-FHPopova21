@@ -28,7 +28,9 @@ os.makedirs(app.instance_path, exist_ok=True)
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'SmartFit.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your-secret-key-here' 
+# Ensure SECRET_KEY is set for token generation
+if not app.config.get('SECRET_KEY'):
+    app.config['SECRET_KEY'] = 'your-secret-key-here'
 
 # Initialize extensions
 db.init_app(app)

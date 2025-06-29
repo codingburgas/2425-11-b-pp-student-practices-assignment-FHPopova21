@@ -523,29 +523,21 @@ const AdminDashboard = () => {
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Съдържание</TableHead>
-                    <TableHead>Рейтинг</TableHead>
                     <TableHead>Потребител</TableHead>
                     <TableHead>Дреха</TableHead>
                     <TableHead>Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {comments.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-gray-400">Няма коментари.</TableCell>
+                    </TableRow>
+                  )}
                   {comments.map((comment) => (
                     <TableRow key={comment.id}>
                       <TableCell>{comment.id}</TableCell>
                       <TableCell className="max-w-xs truncate">{comment.content}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {comment.rating}/5
-                          <div className="ml-2 flex">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className={i < comment.rating ? 'text-yellow-400' : 'text-gray-300'}>
-                                ★
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </TableCell>
                       <TableCell>{comment.user_name}</TableCell>
                       <TableCell>{comment.clothing_name}</TableCell>
                       <TableCell>

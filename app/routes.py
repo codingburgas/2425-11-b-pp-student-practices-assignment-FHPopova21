@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app, url_for
 from .models import User, db, RecommendationHistory, BodyMeasurements, Clothing, Comment
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
@@ -462,3 +462,66 @@ def delete_comment(comment_id):
         log_error(e, "Admin delete comment error")
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@auth.route('/api/change-password', methods=['POST'])
+@login_required
+def change_password():
+    try:
+        data = request.get_json()
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+        confirm_new_password = data.get('confirm_new_password')
+
+        if not old_password or not new_password or not confirm_new_password:
+            return jsonify({'error': 'Всички полета са задължителни.'}), 400
+
+        if not current_user.check_password(old_password):
+            return jsonify({'error': 'Грешна текуща парола.'}), 400
+
+        if new_password != confirm_new_password:
+            return jsonify({'error': 'Новите пароли не съвпадат.'}), 400
+
+        if len(new_password) < 6:
+            return jsonify({'error': 'Новата парола трябва да е поне 6 символа.'}), 400
+
+        current_user.set_password(new_password)
+        db.session.commit()
+        return jsonify({'message': 'Паролата е сменена успешно.'}), 200
+    except Exception as e:
+        log_error(e, 'Change password error')
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@auth.route('/api/clothing/<int:clothing_id>/comments', methods=['GET'])
+def get_clothing_comments(clothing_id):
+    comments = Comment.query.filter_by(clothing_id=clothing_id).order_by(Comment.created_at.desc()).all()
+    return jsonify([c.to_dict() for c in comments]), 200
+
+@auth.route('/api/clothing/<int:clothing_id>/comments', methods=['POST'])
+@login_required
+def add_clothing_comment(clothing_id):
+    import logging
+    logger = logging.getLogger('comment_debug')
+    data = request.get_json()
+    content = data.get('content')
+    rating = data.get('rating')
+    logger.info(f'User {current_user.id} tries to comment on clothing {clothing_id} with content: {content}')
+    if not content:
+        logger.warning('Empty comment content')
+        return jsonify({'error': 'Коментарът не може да е празен.'}), 400
+    # Check if user has a recommendation for this clothing
+    rec = RecommendationHistory.query.filter_by(user_id=current_user.id, item_identifier=str(clothing_id)).first()
+    logger.info(f'Recommendation found: {rec is not None}')
+    if not rec:
+        logger.warning('No recommendation found for this clothing')
+        return jsonify({'error': 'Може да коментирате само ако имате препоръка за тази дреха.'}), 403
+    try:
+        comment = Comment(user_id=current_user.id, clothing_id=clothing_id, content=content, rating=rating)
+        db.session.add(comment)
+        db.session.commit()
+        logger.info(f'Comment saved! ID: {comment.id}')
+        return jsonify({'message': 'Коментарът е добавен успешно.', 'comment': comment.to_dict()}), 201
+    except Exception as e:
+        logger.error(f'Error saving comment: {e}')
+        db.session.rollback()
+        return jsonify({'error': f'Грешка при запис на коментар: {str(e)}'}), 500

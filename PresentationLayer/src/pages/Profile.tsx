@@ -12,6 +12,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface RecommendationHistory {
   id: number;
@@ -111,6 +113,7 @@ const Profile = () => {
           <TabsTrigger value="info">Информация</TabsTrigger>
           <TabsTrigger value="measurements">Телесни мерки</TabsTrigger>
           <TabsTrigger value="history">История</TabsTrigger>
+          <TabsTrigger value="password">Смяна на парола</TabsTrigger>
         </TabsList>
 
         <TabsContent value="info">
@@ -284,8 +287,95 @@ const Profile = () => {
             )}
           </div>
         </TabsContent>
+
+        <TabsContent value="password">
+          <Card>
+            <CardHeader>
+              <CardTitle>Смяна на парола</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChangePasswordForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
+  );
+};
+
+const ChangePasswordForm = () => {
+  const { toast } = useToast();
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch('/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          old_password: oldPassword,
+          new_password: newPassword,
+          confirm_new_password: confirmNewPassword,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast({ title: 'Успех', description: data.message });
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      } else {
+        toast({ title: 'Грешка', description: data.error || 'Възникна грешка', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Грешка', description: 'Възникна грешка', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+      <div>
+        <Label htmlFor="old-password">Стара парола</Label>
+        <Input
+          id="old-password"
+          type="password"
+          value={oldPassword}
+          onChange={e => setOldPassword(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="new-password">Нова парола</Label>
+        <Input
+          id="new-password"
+          type="password"
+          value={newPassword}
+          onChange={e => setNewPassword(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="confirm-new-password">Потвърди нова парола</Label>
+        <Input
+          id="confirm-new-password"
+          type="password"
+          value={confirmNewPassword}
+          onChange={e => setConfirmNewPassword(e.target.value)}
+          required
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Смяна...' : 'Смени паролата'}
+      </Button>
+    </form>
   );
 };
 
