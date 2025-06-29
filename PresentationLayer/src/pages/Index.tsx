@@ -44,6 +44,9 @@ const Index = () => {
               </Button>
             </Link>
           </div>
+          <Button asChild className="mt-4">
+            <Link to="/about">Научи повече за SmartFit</Link>
+          </Button>
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
-import { User, Home, ShoppingBag, Settings } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { User, Home, ShoppingBag, Settings, Info } from 'lucide-react';
+import { Link, useLocation, NavLink } from 'react-router-dom';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -71,6 +71,19 @@ const Navbar = () => {
                 </Link>
               );
             })}
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-beige-100 text-beige-800 font-bold'
+                    : 'text-gray-600 hover:text-beige-700 hover:bg-beige-50'
+                }`
+              }
+            >
+              <Info size={18} />
+              <span>За нас</span>
+            </NavLink>
           </div>
 
           {/* Auth Buttons */}

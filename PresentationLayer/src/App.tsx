@@ -17,6 +17,7 @@ import SellerListings from "./pages/SellerListings";
 import SellerDashboard from "./pages/SellerDashboard";
 import MerchantProfile from "./pages/MerchantProfile";
 import AdminDashboard from "@/pages/AdminDashboard";
+import About from './pages/About';
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/seller/listings" element={<SellerListings />} />
             <Route path="/seller/profile" element={<MerchantProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/about" element={<About />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
