@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'user' | 'seller';
+  role: 'user' | 'seller' | 'admin';
   bodyMeasurements?: BodyMeasurements;
 }
 

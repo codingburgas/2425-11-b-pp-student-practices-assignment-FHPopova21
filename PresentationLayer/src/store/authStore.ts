@@ -5,7 +5,7 @@ interface User {
   id: number;
   username: string;
   email: string;
-  role: string;
+  role: 'user' | 'seller' | 'admin';
   name: string;
   bodyMeasurements?: {
     height: number;

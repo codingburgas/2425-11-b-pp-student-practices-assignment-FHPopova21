@@ -4,9 +4,6 @@ import os
 from datetime import datetime
 
 def setup_logging(app):
-    """
-    Настройва системата за логване на приложението
-    """
     
     # Създаваме директория за логове ако не съществува
     log_dir = os.path.join(app.instance_path, 'logs')
@@ -87,9 +84,6 @@ def setup_module_loggers(log_dir, formatter):
     auth_logger.addHandler(auth_handler)
 
 def log_user_action(action, user_id=None, details=None):
-    """
-    Логва потребителско действие
-    """
     logger = logging.getLogger('user_actions')
     logger.setLevel(logging.INFO)
     
@@ -118,9 +112,6 @@ def log_user_action(action, user_id=None, details=None):
     logger.info(message)
 
 def log_ai_recommendation(user_id, clothing_id, input_data, recommendation, confidence=None):
-    """
-    Логва AI препоръка
-    """
     logger = logging.getLogger('ai_recommendations')
     logger.setLevel(logging.INFO)
     

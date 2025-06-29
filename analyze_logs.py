@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-SmartFit Log Analyzer
-Анализира логовете и генерира полезни отчети
-"""
-
 import os
 import re
 from datetime import datetime, timedelta

@@ -90,7 +90,7 @@ log_performance("size_prediction", 0.245, "Result: M")
 **Формат:**
 
 ```
-2024-01-15 10:32:15 - performance - Operation: size_prediction | Duration: 0.245s | Details: Result: M
+2025-06-06 10:32:15 - performance - Operation: size_prediction | Duration: 0.245s | Details: Result: M
 ```
 
 ### 4. Грешки
@@ -102,7 +102,7 @@ log_error(exception, "Registration error")
 **Формат:**
 
 ```
-2024-01-15 10:33:00 - errors - Error: Database connection failed | Context: Registration error
+2025-06-15 16:33:00 - errors - Error: Database connection failed | Context: Registration error
 ```
 
 ## 🛠️ Как да използвате логването
