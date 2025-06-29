@@ -129,7 +129,7 @@ const Recommendation = () => {
         garment_width: selectedItem?.measurements.width
       };
 
-      const response = await fetch('http://localhost:5001/predict', {
+      const response = await fetch('http://localhost:5001/api/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

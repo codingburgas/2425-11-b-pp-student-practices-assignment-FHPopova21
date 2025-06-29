@@ -3,9 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from app.models import db, User, Clothing, Comment
-from app.routes import auth
-from app.ml.predict import predict_bp
+from app.models import db, User
 from app.logging_config import setup_logging, log_user_action, log_error
 from app.seed import seed_database
 import os
@@ -28,7 +26,6 @@ os.makedirs(app.instance_path, exist_ok=True)
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'SmartFit.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# Ensure SECRET_KEY is set for token generation
 if not app.config.get('SECRET_KEY'):
     app.config['SECRET_KEY'] = 'your-secret-key-here'
 
@@ -65,9 +62,17 @@ def index():
     })
 
 # Register blueprints
-app.register_blueprint(auth)
-app.register_blueprint(predict_bp)
-logger.info("Registered blueprints: auth and predict")
+from app.routes.auth_routes import auth_bp
+from app.routes.user_routes import user_bp
+from app.routes.admin_routes import admin_bp
+from app.routes.clothing_routes import clothing_bp
+from app.routes.comment_routes import comment_bp
+app.register_blueprint(auth_bp)
+app.register_blueprint(user_bp, url_prefix='/api')
+app.register_blueprint(admin_bp, url_prefix='/api')
+app.register_blueprint(clothing_bp, url_prefix='/api')
+app.register_blueprint(comment_bp, url_prefix='/api')
+logger.info("Registered blueprints: auth, user, admin, clothing, comment")
 
 # Create database tables and seed data
 with app.app_context():
