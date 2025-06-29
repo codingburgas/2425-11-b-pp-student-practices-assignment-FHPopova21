@@ -54,18 +54,96 @@ SmartFit is an intelligent system that uses machine learning to suggest the most
   <img src="./Images/size_page.jpeg" alt="Size Recommendation Example" width="500"/>
 </p>
 
-## 💻 Running the project
+## 💻 Running the Project
+
+## Follow the steps below to run SmartFit locally.
+
+### 1️⃣ Clone the repo
 
 ```bash
-# Clone the repo
 git clone https://github.com/YourUsername/SmartFit.git
+cd SmartFit
+```
 
-# Install dependencies
+---
+
+### 2️⃣ Install Python 3.12
+
+Make sure you have **Python 3.12** installed. You can check with:
+
+```bash
+python3 --version
+# or
+python --version
+```
+
+---
+
+### 3️⃣ Create a virtual environment (venv)
+
+#### macOS / Linux:
+
+```bash
+python3 -m venv venv
+```
+
+#### Windows:
+
+```bash
+python -m venv venv
+```
+
+---
+
+### 4️⃣ Activate the virtual environment
+
+#### macOS / Linux:
+
+```bash
+source venv/bin/activate
+```
+
+#### Windows (Command Prompt):
+
+```cmd
+venv\Scripts\activate.bat
+```
+
+#### Windows (PowerShell):
+
+```powershell
+venv\Scripts\Activate.ps1
+```
+
+---
+
+### 5️⃣ Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# Run the app
+---
+
+### 6️⃣ Start the servers
+
+#### Backend (Flask):
+
+```bash
 python app.py
 ```
+
+#### Frontend (React):
+
+```bash
+cd PresentationLayer
+npm install
+npm run dev
+```
+
+---
+
+📝 **Note:** Make sure you have Node.js and npm installed for the frontend part.
 
 ## 📂 Documents
 
