@@ -8,6 +8,9 @@ from . import db
 from datetime import datetime
 
 class BodyMeasurements(db.Model):
+    """
+    Модел за телесни мерки на потребителя. Съдържа височина, тегло, пол, гръдна обиколка, талия, тип тяло и възраст.
+    """
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, unique=True)
     height = db.Column(db.Float, nullable=False)  # in cm
@@ -21,6 +24,9 @@ class BodyMeasurements(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def to_dict(self):
+        """
+        Връща речник с всички телесни мерки на потребителя.
+        """
         return {
             'height': self.height,
             'weight': self.weight,
@@ -32,6 +38,9 @@ class BodyMeasurements(db.Model):
         }
 
 class User(UserMixin, db.Model):
+    """
+    Модел за потребител. Съдържа данни за вход, роля и връзки към други обекти.
+    """
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -43,12 +52,21 @@ class User(UserMixin, db.Model):
     comments = db.relationship('Comment', backref='user', lazy=True)
     
     def set_password(self, password):
+        """
+        Задава хеширана парола на потребителя.
+        """
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
+        """
+        Проверява дали подадената парола съвпада с хешираната парола на потребителя.
+        """
         return check_password_hash(self.password_hash, password)
     
     def to_dict(self):
+        """
+        Връща речник с основните данни за потребителя.
+        """
         return {
             'id': self.id,
             'username': self.username,
@@ -59,6 +77,9 @@ class User(UserMixin, db.Model):
         }
 
 class Clothing(db.Model):
+    """
+    Модел за дреха. Съдържа информация за име, тип, материя, размер, мерки, цена, описание и продавач.
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     type = db.Column(db.String(50), nullable=False)  # 'shirt', 'pants', 'dress', 'jacket', 'skirt', 'sweater'
@@ -76,6 +97,9 @@ class Clothing(db.Model):
     comments = db.relationship('Comment', backref='clothing', lazy=True)
 
     def to_dict(self):
+        """
+        Връща речник с всички данни за дрехата.
+        """
         return {
             'id': self.id,
             'name': self.name,
@@ -97,6 +121,9 @@ class Clothing(db.Model):
         }
 
 class Comment(db.Model):
+    """
+    Модел за коментар към дреха. Съдържа съдържание, рейтинг, потребител, дреха и дати.
+    """
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer)  # 1-5 stars, optional
@@ -106,6 +133,9 @@ class Comment(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def to_dict(self):
+        """
+        Връща речник с всички данни за коментара.
+        """
         return {
             'id': self.id,
             'content': self.content,
@@ -119,6 +149,9 @@ class Comment(db.Model):
         }
 
 class RecommendationHistory(db.Model):
+    """
+    Модел за история на препоръките. Съдържа данни за препоръчан размер, мерки и връзка към потребител.
+    """
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -132,6 +165,9 @@ class RecommendationHistory(db.Model):
     item_identifier = db.Column(db.String(100))  # To group related recommendations
     
     def to_dict(self):
+        """
+        Връща речник с всички данни за препоръката и свързаните препоръки.
+        """
         related = []
         if self.item_identifier:
             related = RecommendationHistory.query.filter(
@@ -156,6 +192,9 @@ class RecommendationHistory(db.Model):
         }
     
     def to_dict_without_related(self):
+        """
+        Връща речник с данни за препоръката без свързаните препоръки.
+        """
         return {
             'id': self.id,
             'date': self.date.isoformat(),

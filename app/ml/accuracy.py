@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import os
 
 def evaluate_model():
+    """
+    Оценява обучен ML модел, изчислява метрики, confusion matrix и feature importance, и ги записва във файл.
+    """
     try:
         # Зареждане на данните
         dataset_path = os.path.join(os.path.dirname(__file__), 'training_data.csv')

@@ -14,6 +14,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def train_model():
+    """
+    Обучава ML модел за препоръка на размер на дреха, използвайки тренировъчни данни.
+    Записва модела и скалерите във файл.
+    """
     try:
         # Load the dataset
         dataset_path = os.path.join(os.path.dirname(__file__), 'training_data.csv')

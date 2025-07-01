@@ -6,6 +6,9 @@ from app.logging_config import log_user_action, log_error
 import logging
 
 admin_bp = Blueprint('admin_bp', __name__)
+"""
+Blueprint за всички админ маршрути: управление на потребители, дрехи, коментари и препоръки.
+"""
 logger = logging.getLogger('admin_bp')
 
 @admin_bp.route('/admin/users')
@@ -36,6 +39,11 @@ def get_all_users():
 @login_required
 @admin_required
 def get_all_clothes():
+    """
+    Връща списък с всички дрехи.
+    Метод: GET
+    Изход: JSON с всички дрехи
+    """
     try:
         clothes = Clothing.query.all()
         log_user_action("admin_get_clothes", current_user.id, f"Count: {len(clothes)}")
@@ -126,6 +134,12 @@ def delete_user(user_id):
 @login_required
 @admin_required
 def delete_clothing(clothing_id):
+    """
+    Изтрива дреха по ID.
+    Метод: DELETE
+    Вход: clothing_id (URL параметър)
+    Изход: JSON със статус
+    """
     try:
         clothing = Clothing.query.get(clothing_id)
         if not clothing:

@@ -10,10 +10,19 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 import os
 
 auth_bp = Blueprint('auth_bp', __name__)
+"""
+Blueprint за всички маршрути, свързани с автентикация: регистрация, вход, изход, забравена парола и смяна на парола.
+"""
 logger = logging.getLogger('auth_bp')
 
 @auth_bp.route('/api/register', methods=['POST'])
 def register():
+    """
+    Регистрира нов потребител.
+    Метод: POST
+    Вход: JSON с username, email, password, role
+    Изход: JSON със статус и съобщение
+    """
     try:
         data = request.get_json()
         logger.info(f"Registration attempt for username: {data.get('username', 'unknown')}")
@@ -52,6 +61,12 @@ def register():
 
 @auth_bp.route('/api/login', methods=['POST'])
 def login():
+    """
+    Вход в системата.
+    Метод: POST
+    Вход: JSON с username и password
+    Изход: JSON с данни за потребителя или грешка
+    """
     try:
         data = request.get_json()
         logger.info(f"Login attempt for username: {data.get('username', 'unknown')}")
@@ -74,6 +89,11 @@ def login():
 
 @auth_bp.route('/api/logout')
 def logout():
+    """
+    Изход от системата (logout).
+    Метод: GET
+    Изход: JSON със статус
+    """
     try:
         logout_user()
         return jsonify({'message': 'Logged out successfully'}), 200
@@ -83,6 +103,12 @@ def logout():
 
 @auth_bp.route('/api/forgot-password', methods=['POST'])
 def forgot_password():
+    """
+    Изпраща имейл за възстановяване на парола.
+    Метод: POST
+    Вход: JSON с email
+    Изход: JSON със статус
+    """
     data = request.get_json()
     email = data.get('email')
     if not email:
@@ -105,6 +131,12 @@ def forgot_password():
 
 @auth_bp.route('/api/reset-password/<token>', methods=['POST'])
 def reset_password(token):
+    """
+    Смяна на парола чрез токен от имейл.
+    Метод: POST
+    Вход: JSON с нова парола и потвърждение
+    Изход: JSON със статус
+    """
     data = request.get_json()
     password = data.get('password')
     confirm_password = data.get('confirm_password')

@@ -4,6 +4,9 @@ from flask_login import login_required, current_user
 import logging
 
 comment_bp = Blueprint('comment_bp', __name__)
+"""
+Blueprint за всички маршрути, свързани с коментари към дрехи и админ коментари.
+"""
 logger = logging.getLogger('comment_bp')
 
 @comment_bp.route('/clothing/<int:clothing_id>/comments', methods=['GET'])

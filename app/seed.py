@@ -3,7 +3,9 @@ from werkzeug.security import generate_password_hash
 from datetime import datetime
 
 def seed_database():
-    """Seed the database with initial data"""
+    """
+    Зарежда начални данни в базата: админ, продавачи, дрехи и коментари.
+    """
     
     # Check if admin already exists
     admin = User.query.filter_by(username='FHPopova21').first()

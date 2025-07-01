@@ -4,6 +4,11 @@ import os
 from datetime import datetime
 
 def setup_logging(app):
+    """
+    Конфигурира логването за Flask приложението и създава нужните лог файлове и handlers.
+    :param app: Flask приложение
+    :return: Главният логър
+    """
     
     # Създаваме директория за логове ако не съществува
     log_dir = os.path.join(app.instance_path, 'logs')
@@ -56,7 +61,9 @@ def setup_logging(app):
 
 def setup_module_loggers(log_dir, formatter):
     """
-    Настройва специфични логъри за различни модули
+    Настройва специфични логъри за различни модули.
+    :param log_dir: Директория за лог файловете
+    :param formatter: Формат на логовете
     """
     
     # Логър за ML модула
@@ -84,6 +91,12 @@ def setup_module_loggers(log_dir, formatter):
     auth_logger.addHandler(auth_handler)
 
 def log_user_action(action, user_id=None, details=None):
+    """
+    Логва действие на потребител.
+    :param action: Името на действието
+    :param user_id: ID на потребителя (по избор)
+    :param details: Допълнителни детайли (по избор)
+    """
     logger = logging.getLogger('user_actions')
     logger.setLevel(logging.INFO)
     
@@ -112,6 +125,14 @@ def log_user_action(action, user_id=None, details=None):
     logger.info(message)
 
 def log_ai_recommendation(user_id, clothing_id, input_data, recommendation, confidence=None):
+    """
+    Логва AI препоръка за размер.
+    :param user_id: ID на потребителя
+    :param clothing_id: ID на дрехата
+    :param input_data: Входни данни
+    :param recommendation: Препоръчан размер
+    :param confidence: Доверие (по избор)
+    """
     logger = logging.getLogger('ai_recommendations')
     logger.setLevel(logging.INFO)
     
@@ -139,7 +160,9 @@ def log_ai_recommendation(user_id, clothing_id, input_data, recommendation, conf
 
 def log_error(error, context=None):
     """
-    Логва грешка с контекст
+    Логва грешка с контекст.
+    :param error: Грешката
+    :param context: Контекст (по избор)
     """
     logger = logging.getLogger('errors')
     logger.setLevel(logging.ERROR)
@@ -168,7 +191,10 @@ def log_error(error, context=None):
 
 def log_performance(operation, duration, details=None):
     """
-    Логва производителност на операции
+    Логва производителност на операции.
+    :param operation: Операция
+    :param duration: Време за изпълнение
+    :param details: Детайли (по избор)
     """
     logger = logging.getLogger('performance')
     logger.setLevel(logging.INFO)
@@ -198,7 +224,9 @@ def log_performance(operation, duration, details=None):
 # Декоратор за логване на функции
 def log_function_call(func_name):
     """
-    Декоратор за автоматично логване на извиквания на функции
+    Декоратор за автоматично логване на извиквания на функции.
+    :param func_name: Име на функцията
+    :return: Декоратор
     """
     def decorator(func):
         def wrapper(*args, **kwargs):

@@ -8,6 +8,9 @@ import uuid
 from datetime import datetime
 
 clothing_bp = Blueprint('clothing_bp', __name__)
+"""
+Blueprint за всички маршрути, свързани с дрехи: препоръки, предсказване на размер, история.
+"""
 logger = logging.getLogger('clothing_bp')
 
 @clothing_bp.route('/recommendations', methods=['POST'])

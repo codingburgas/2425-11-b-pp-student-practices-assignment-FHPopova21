@@ -10,6 +10,10 @@ db = SQLAlchemy()
 mail = Mail()
 
 def create_app():
+    """
+    Създава и конфигурира Flask приложението, инициализира разширенията и регистрира всички blueprints.
+    :return: Инициализирано Flask приложение
+    """
     app = Flask(__name__)
     app.config.from_object('app.config.Config')
     db.init_app(app)

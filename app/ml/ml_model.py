@@ -39,6 +39,11 @@ EN_TO_BG = {
 }
 
 def translate_to_bg(data):
+    """
+    Превежда ключовете на речник от английски на български според EN_TO_BG.
+    :param data: Речник с данни
+    :return: Нов речник с преведени ключове
+    """
     return {EN_TO_BG.get(k, k): v for k, v in data.items()}
 
 def predict_size(data):

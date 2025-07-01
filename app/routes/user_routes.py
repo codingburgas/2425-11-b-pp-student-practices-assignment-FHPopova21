@@ -5,6 +5,9 @@ from app.logging_config import log_user_action, log_error
 import logging
 
 user_bp = Blueprint('user_bp', __name__)
+"""
+Blueprint за всички потребителски маршрути: профил, мерки, препоръки, смяна на парола.
+"""
 logger = logging.getLogger('user_bp')
 
 @user_bp.route('/user', methods=['GET'])
