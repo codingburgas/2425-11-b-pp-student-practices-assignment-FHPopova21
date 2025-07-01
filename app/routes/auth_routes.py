@@ -1,9 +1,13 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, url_for, current_app
 from app.models import User, db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user
 from app.logging_config import log_user_action, log_error
 import logging
+from app import mail
+from flask_mail import Message
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+import os
 
 auth_bp = Blueprint('auth_bp', __name__)
 logger = logging.getLogger('auth_bp')
@@ -75,4 +79,52 @@ def logout():
         return jsonify({'message': 'Logged out successfully'}), 200
     except Exception as e:
         log_error(e, "Logout error")
-        return jsonify({'error': str(e)}), 500 
+        return jsonify({'error': str(e)}), 500
+
+@auth_bp.route('/api/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.get_json()
+    email = data.get('email')
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+    user = User.query.filter_by(email=email).first()
+    if user:
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        token = serializer.dumps(user.email, salt='password-reset-salt')
+        reset_url = url_for('auth_bp.reset_password', token=token, _external=True)
+        msg = Message('Reset your SmartFit password', recipients=[user.email])
+        msg.body = f"Hello {user.username},\n\nClick the link to reset your password: {reset_url}\n\nIf you did not request this, ignore this email."
+        try:
+            mail.send(msg)
+            logger.info(f"Sent password reset email to {user.email}")
+        except Exception as e:
+            logger.error(f"Failed to send reset email: {e}")
+            return jsonify({'error': 'Failed to send email'}), 500
+    # Always respond with success for security
+    return jsonify({'message': 'If the email is registered, a reset link has been sent.'}), 200
+
+@auth_bp.route('/api/reset-password/<token>', methods=['POST'])
+def reset_password(token):
+    data = request.get_json()
+    password = data.get('password')
+    confirm_password = data.get('confirm_password')
+    if not password or not confirm_password:
+        return jsonify({'error': 'All fields are required.'}), 400
+    if password != confirm_password:
+        return jsonify({'error': 'Passwords do not match.'}), 400
+    if len(password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters.'}), 400
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=1800)  # 30 min
+    except SignatureExpired:
+        return jsonify({'error': 'The reset link has expired.'}), 400
+    except BadSignature:
+        return jsonify({'error': 'Invalid or tampered reset link.'}), 400
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found.'}), 404
+    user.set_password(password)
+    db.session.commit()
+    logger.info(f"Password reset for user {user.username}")
+    return jsonify({'message': 'Password has been reset successfully.'}), 200 

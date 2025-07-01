@@ -1,10 +1,19 @@
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 from flask_sqlalchemy import SQLAlchemy
 from flask import Flask
+from flask_mail import Mail
+
 
 db = SQLAlchemy()
+mail = Mail()
 
 def create_app():
     app = Flask(__name__)
+    app.config.from_object('app.config.Config')
+    db.init_app(app)
+    mail.init_app(app)
     from app.routes.auth_routes import auth_bp
     from app.routes.user_routes import user_bp
     from app.routes.admin_routes import admin_bp

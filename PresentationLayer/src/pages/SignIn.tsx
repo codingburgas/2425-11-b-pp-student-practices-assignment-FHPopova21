@@ -80,6 +80,9 @@ const SignIn = () => {
                 className="border-beige-300 focus:border-beige-500"
                 placeholder="Въведете парола"
               />
+              <div className="text-right mt-1">
+                <Link to="/auth/forgot-password" className="text-sm text-beige-600 hover:text-beige-700">Забравена парола?</Link>
+              </div>
             </div>
 
             <Button 
