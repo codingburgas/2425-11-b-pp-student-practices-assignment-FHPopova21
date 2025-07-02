@@ -4,7 +4,7 @@ const API_URL = 'http://localhost:5001/api';
 
 export const measurementsService = {
     saveMeasurements: async (measurements: BodyMeasurements) => {
-        const response = await fetch(`${API_URL}/measurements`, {
+        const response = await fetch(`${API_URL}/user/measurements`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -22,7 +22,7 @@ export const measurementsService = {
     },
 
     getMeasurements: async () => {
-        const response = await fetch(`${API_URL}/measurements`, {
+        const response = await fetch(`${API_URL}/user/measurements`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

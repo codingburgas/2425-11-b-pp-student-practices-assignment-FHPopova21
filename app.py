@@ -38,7 +38,7 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     try:
-        user = User.query.get(int(user_id))
+        user = db.session.get(User, int(user_id))
         logger.debug(f"Loaded user: {user.username if user else 'None'}")
         return user
     except Exception as e:
